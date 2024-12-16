@@ -21,19 +21,20 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             color: #333;
         }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
         h1 {
             text-align: center;
             font-size: 28px;
             color: #001f3f;
         }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section h2 {
-            font-size: 20px;
-            color: #000F9F;
-        }
-        input, textarea, select {
+        input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -50,9 +51,23 @@
             background-color: #FFA630;
             color: white;
             cursor: pointer;
+            display: block;
+            margin: 20px auto;
         }
         button:hover {
             background-color: #e59426;
+        }
+        .section {
+            margin-top: 20px;
+        }
+        .section h2 {
+            font-size: 20px;
+            color: #000F9F;
+            margin-bottom: 10px;
+        }
+        .section p {
+            font-size: 16px;
+            color: #333;
         }
         table {
             width: 100%;
@@ -71,50 +86,38 @@
 </head>
 <body>
     <div class="container">
-        <h1>Mon Espace IMPRO</h1>
-        <!-- Email Input Section -->
+        <header>
+            <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
+            <h1>Mon Espace IMPRO</h1>
+        </header>
         <div id="emailSection">
-            <h2>Accéder à votre espace</h2>
             <input type="email" id="emailInput" placeholder="Entrez votre email" required>
             <button onclick="fetchUserData()">Valider</button>
         </div>
 
-        <!-- User Info Section -->
-        <div id="userInfoSection" style="display: none;">
-            <div class="section">
-                <h2>Mon Profil</h2>
-                <p><strong>NOM : </strong><span id="profileName"></span></p>
-                <p><strong>Prénom : </strong><span id="profileFirstName"></span></p>
-                <p><strong>Email : </strong><span id="profileEmail"></span></p>
-                <p><strong>Téléphone : </strong><span id="profilePhone"></span></p>
-            </div>
+        <div id="userInfoSection" style="display: none;" class="section">
+            <h2>Vos informations :</h2>
+            <p><strong>Nom :</strong> <span id="userName"></span></p>
+            <p><strong>Prénom :</strong> <span id="userFirstName"></span></p>
+            <p><strong>Email :</strong> <span id="userEmail"></span></p>
+            <p><strong>Téléphone :</strong> <span id="userPhone"></span></p>
 
-            <div class="section">
-                <h2>Mon Calendrier des Mardis</h2>
-                <table id="calendarTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+            <h2>Vos participations :</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="participationTable"></tbody>
+            </table>
 
-            <div class="section">
-                <h2>Ajouter une Date</h2>
-                <select id="newDate">
-                    <option value="">-- Sélectionnez une date --</option>
-                </select>
-                <button onclick="addParticipation()">Ajouter</button>
-            </div>
-
-            <div class="section">
-                <h2>Commentaire</h2>
-                <textarea id="comment" placeholder="Ajoutez un commentaire..."></textarea>
-                <button onclick="saveComment()">Enregistrer</button>
-            </div>
+            <h2>Ajouter une participation :</h2>
+            <select id="newDate">
+                <option value="">-- Sélectionnez une date --</option>
+            </select>
+            <button onclick="addParticipation()">Ajouter</button>
         </div>
     </div>
 
@@ -134,48 +137,52 @@
                     return;
                 }
 
-                const user = data[0];
-                document.getElementById("emailSection").style.display = "none";
-                document.getElementById("userInfoSection").style.display = "block";
-
-                document.getElementById("profileName").textContent = user["Nom"];
-                document.getElementById("profileFirstName").textContent = user["Prénom"];
-                document.getElementById("profileEmail").textContent = user["E-mail"];
-                document.getElementById("profilePhone").textContent = user["Téléphone"];
-                
-                loadCalendar(user["Disponibilités"]);
-                loadAvailableDates();
+                displayUserData(data[0]);
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
+                alert("Erreur de communication avec le serveur. Veuillez réessayer plus tard.");
             }
         }
 
-        async function loadCalendar(dates) {
-            const tbody = document.querySelector("#calendarTable tbody");
-            tbody.innerHTML = "";
+        function displayUserData(user) {
+            document.getElementById("emailSection").style.display = "none";
+            document.getElementById("userInfoSection").style.display = "block";
+
+            document.getElementById("userName").textContent = user["Nom"];
+            document.getElementById("userFirstName").textContent = user["Prénom"];
+            document.getElementById("userEmail").textContent = user["E-mail"];
+            document.getElementById("userPhone").textContent = user["Téléphone"] || "Non renseigné";
+
+            loadParticipationTable(user["Disponibilités"]);
+            loadAvailableDates();
+        }
+
+        function loadParticipationTable(dates) {
+            const tableBody = document.getElementById("participationTable");
+            tableBody.innerHTML = "";
 
             if (dates) {
                 dates.split(",").forEach(date => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
                         <td>${date}</td>
-                        <td><button onclick="removeDate('${date}')">Supprimer</button></td>
+                        <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>
                     `;
-                    tbody.appendChild(row);
+                    tableBody.appendChild(row);
                 });
             }
         }
 
-        async function addParticipation() {
-            const email = document.getElementById("profileEmail").textContent;
-            const newDate = document.getElementById("newDate").value;
-            if (!newDate) return alert("Veuillez sélectionner une date.");
+        async function removeParticipation(date) {
+            const email = document.getElementById("userEmail").textContent;
 
             try {
                 const response = await fetch(`${apiUrl}?E-mail=${email}`);
-                const userData = await response.json();
-                const currentDates = userData[0]["Disponibilités"] || "";
-                const updatedDates = currentDates ? `${currentDates}, ${newDate}` : newDate;
+                const user = await response.json()[0];
+                const updatedDates = user["Disponibilités"]
+                    .split(",")
+                    .filter(d => d.trim() !== date)
+                    .join(",");
 
                 await fetch(apiUrl, {
                     method: "PATCH",
@@ -183,55 +190,43 @@
                     body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
                 });
 
-                alert("Date ajoutée avec succès !");
-                loadCalendar(updatedDates);
+                alert("Participation supprimée avec succès !");
+                loadParticipationTable(updatedDates);
             } catch (error) {
-                console.error("Erreur lors de l'ajout de date :", error);
+                console.error("Erreur lors de la suppression de la participation :", error);
             }
         }
 
-        async function saveComment() {
-            const email = document.getElementById("profileEmail").textContent;
-            const comment = document.getElementById("comment").value;
+        async function addParticipation() {
+            const email = document.getElementById("userEmail").textContent;
+            const newDate = document.getElementById("newDate").value;
 
-            try {
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Commentaire": comment })
-                });
-                alert("Commentaire enregistré avec succès !");
-            } catch (error) {
-                console.error("Erreur lors de l'enregistrement du commentaire :", error);
-            }
-        }
+            if (!newDate) return alert("Veuillez sélectionner une date.");
 
-        async function removeDate(date) {
-            const email = document.getElementById("profileEmail").textContent;
             try {
                 const response = await fetch(`${apiUrl}?E-mail=${email}`);
-                const userData = await response.json();
-                const currentDates = userData[0]["Disponibilités"]
-                    .split(",")
-                    .filter(d => d.trim() !== date)
-                    .join(", ");
+                const user = await response.json()[0];
+                const updatedDates = user["Disponibilités"]
+                    ? `${user["Disponibilités"]},${newDate}`
+                    : newDate;
 
                 await fetch(apiUrl, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Disponibilités": currentDates })
+                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
                 });
 
-                alert("Date supprimée avec succès !");
-                loadCalendar(currentDates);
+                alert("Participation ajoutée avec succès !");
+                loadParticipationTable(updatedDates);
             } catch (error) {
-                console.error("Erreur lors de la suppression de date :", error);
+                console.error("Erreur lors de l'ajout de la participation :", error);
             }
         }
 
         async function loadAvailableDates() {
             const calendar = document.getElementById("newDate");
             calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
+
             const startDate = new Date("2025-01-14");
             const endDate = new Date("2025-12-31");
             let currentDate = startDate;
