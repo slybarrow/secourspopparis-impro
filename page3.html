@@ -136,14 +136,17 @@
         async function fetchUserData() {
             const email = document.getElementById("emailInput").value;
             const name = document.getElementById("nameInput").value;
-            if (!email || !name) return alert("Veuillez entrer votre email et votre nom.");
+            if (!email || !name) {
+                alert("Veuillez entrer votre email et votre nom.");
+                return;
+            }
 
             try {
                 const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&Nom=${encodeURIComponent(name)}`);
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    alert("Aucune participation trouvée pour cet email et ce nom.");
+                    alert("Aucune correspondance trouvée. Veuillez vérifier vos informations.");
                     return;
                 }
 
@@ -245,11 +248,4 @@
                     body: JSON.stringify({ "E-mail": email, "Commentaires": comment })
                 });
 
-                alert("Commentaire enregistré avec succès !");
-            } catch (error) {
-                console.error("Erreur lors de l'enregistrement du commentaire :", error);
-            }
-        }
-    </script>
-</body>
-</html>
+                alert
