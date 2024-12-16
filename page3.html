@@ -1,230 +1,49 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Espace IMPRO</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(120deg, #f26419, #0078D7);
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            color: #333;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        header img {
-            height: 60px;
-            margin-bottom: 15px;
-        }
-        h1 {
-            text-align: center;
-            font-size: 28px;
-            color: #001f3f;
-        }
-        input, select, button, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            color: #333;
-        }
-        button {
-            background-color: #FFA630;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #e59426;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        table th, table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        table th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
-            <h1>Mon Espace IMPRO</h1>
-        </header>
+<script>
+    const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
-        <!-- Section de connexion -->
-        <div id="emailSection">
-            <input type="email" id="emailInput" placeholder="Entrez votre email" required>
-            <input type="text" id="nameInput" placeholder="Entrez votre nom" required>
-            <button onclick="fetchUserData()">Valider</button>
-        </div>
+    async function fetchUserData() {
+        const email = document.getElementById("emailInput").value.trim();
+        const name = document.getElementById("nameInput").value.trim().toUpperCase();
 
-        <!-- Section des informations utilisateur -->
-        <div id="userInfoSection" style="display: none;">
-            <h2>Vos informations :</h2>
-            <label>Nom :</label>
-            <input type="text" id="userName" disabled>
-            <label>Prénom :</label>
-            <input type="text" id="userFirstName" disabled>
-            <label>Email :</label>
-            <input type="email" id="userEmail" disabled>
+        if (!email || !name) {
+            alert("Veuillez entrer votre email et votre nom.");
+            return;
+        }
 
-            <h2>Vos participations :</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="participationTable"></tbody>
-            </table>
+        try {
+            // Appel à l'API avec le filtre NOM + E-mail
+            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
+            const data = await response.json();
 
-            <h2>Ajouter une participation :</h2>
-            <select id="newDate">
-                <option value="">-- Sélectionnez une date --</option>
-            </select>
-            <button onclick="addParticipation()">Ajouter</button>
-        </div>
-    </div>
-
-    <script>
-        const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
-        const vacationDates = [
-            { start: new Date("2025-02-22"), end: new Date("2025-03-10") },
-            { start: new Date("2025-04-19"), end: new Date("2025-05-05") },
-            { start: new Date("2025-07-05"), end: new Date("2025-09-01") },
-            { start: new Date("2025-10-18"), end: new Date("2025-11-03") },
-            { start: new Date("2025-12-20"), end: new Date("2026-01-05") }
-        ];
-
-        async function fetchUserData() {
-            const email = document.getElementById("emailInput").value.trim();
-            const name = document.getElementById("nameInput").value.trim().toUpperCase();
-
-            if (!email || !name) {
-                alert("Veuillez entrer votre email et votre nom.");
+            // Vérification des résultats
+            if (!data || data.length === 0) {
+                alert("Aucune correspondance trouvée. Vérifiez vos informations.");
+                return;
+            }
+            if (data.length > 1) {
+                alert("Plusieurs correspondances trouvées. Veuillez contacter l'administrateur.");
+                console.error("Doublons détectés :", data);
                 return;
             }
 
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
-                const data = await response.json();
-
-                if (!data || data.length === 0) {
-                    alert("Aucune correspondance trouvée. Vérifiez vos informations.");
-                    return;
-                }
-                displayUserData(data[0]);
-            } catch (error) {
-                alert("Erreur de communication avec le serveur.");
-                console.error(error);
-            }
+            // Afficher les données utilisateur
+            displayUserData(data[0]);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des données :", error);
+            alert("Erreur de communication avec le serveur. Veuillez réessayer.");
         }
+    }
 
-        function displayUserData(user) {
-            document.getElementById("emailSection").style.display = "none";
-            document.getElementById("userInfoSection").style.display = "block";
+    function displayUserData(user) {
+        document.getElementById("emailSection").style.display = "none";
+        document.getElementById("userInfoSection").style.display = "block";
 
-            document.getElementById("userName").value = user["NOM"];
-            document.getElementById("userFirstName").value = user["Prénom"];
-            document.getElementById("userEmail").value = user["E-mail"];
+        document.getElementById("userName").value = user["NOM"];
+        document.getElementById("userFirstName").value = user["Prénom"];
+        document.getElementById("userEmail").value = user["E-mail"];
 
-            loadParticipationTable(user["Disponibilités"]);
-            loadAvailableDates(user["Disponibilités"]);
-        }
-
-        function loadParticipationTable(dates) {
-            const tableBody = document.getElementById("participationTable");
-            tableBody.innerHTML = "";
-            if (dates) {
-                dates.split(",").forEach(date => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `<td>${new Date(date).toLocaleDateString("fr-FR")}</td>
-                                     <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>`;
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-
-        async function loadAvailableDates(existingDates) {
-            const calendar = document.getElementById("newDate");
-            calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
-            const startDate = new Date("2025-01-14");
-            const endDate = new Date("2025-12-31");
-            let currentDate = startDate;
-
-            while (currentDate <= endDate) {
-                if (currentDate.getDay() === 2) {
-                    const isVacation = vacationDates.some(v => currentDate >= v.start && currentDate <= v.end);
-                    const dateISO = currentDate.toISOString().split("T")[0];
-                    if (!isVacation && !(existingDates || "").includes(dateISO)) {
-                        const option = document.createElement("option");
-                        option.value = dateISO;
-                        option.textContent = currentDate.toLocaleDateString("fr-FR");
-                        calendar.appendChild(option);
-                    }
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-        }
-
-        async function addParticipation() {
-            const email = document.getElementById("userEmail").value;
-            const newDate = document.getElementById("newDate").value;
-            if (!newDate) return alert("Veuillez sélectionner une date.");
-
-            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-            const user = await response.json()[0];
-            const updatedDates = user["Disponibilités"] ? `${user["Disponibilités"]},${newDate}` : newDate;
-
-            await fetch(apiUrl, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
-            });
-
-            alert("Participation ajoutée avec succès !");
-            displayUserData({ ...user, "Disponibilités": updatedDates });
-        }
-
-        async function removeParticipation(date) {
-            if (!confirm("Êtes-vous sûr de vouloir supprimer cette date ?")) return;
-            const email = document.getElementById("userEmail").value;
-            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-            const user = await response.json()[0];
-            const updatedDates = user["Disponibilités"].split(",").filter(d => d !== date).join(",");
-
-            await fetch(apiUrl, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
-            });
-
-            alert("Participation supprimée avec succès !");
-            displayUserData({ ...user, "Disponibilités": updatedDates });
-        }
-    </script>
-</body>
-</html>
+        // Charger les participations et les dates disponibles
+        loadParticipationTable(user["Disponibilités"]);
+        loadAvailableDates(user["Disponibilités"]);
+    }
+</script>
