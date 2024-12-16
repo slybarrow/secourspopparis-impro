@@ -131,7 +131,7 @@
             if (!email || !name) return alert("Veuillez entrer votre email et votre nom.");
 
             try {
-                const response = await fetch(`${apiUrl}?E-mail=${email}&Nom=${name}`);
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&Nom=${encodeURIComponent(name)}`);
                 const data = await response.json();
 
                 if (data.length === 0) {
