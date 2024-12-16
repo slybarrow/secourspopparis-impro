@@ -133,6 +133,14 @@
     <script>
         const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
+        const vacationDates = [
+            { start: new Date("2025-02-22"), end: new Date("2025-03-10") },
+            { start: new Date("2025-04-19"), end: new Date("2025-05-05") },
+            { start: new Date("2025-07-05"), end: new Date("2025-09-01") },
+            { start: new Date("2025-10-18"), end: new Date("2025-11-03") },
+            { start: new Date("2025-12-20"), end: new Date("2026-01-05") },
+        ];
+
         async function fetchUserData() {
             const email = document.getElementById("emailInput").value.trim();
             const name = document.getElementById("nameInput").value.trim().toUpperCase();
@@ -219,23 +227,19 @@
         }
 
         async function addParticipation() {
-            const newDate = document.getElementById("newDate").value;
-            if (!newDate) return alert("Veuillez sélectionner une date.");
-            if (!confirm(`Êtes-vous sûr de vouloir ajouter la date ${newDate}?`)) return;
-
             const email = document.getElementById("userEmail").value;
+            const newDate = document.getElementById("newDate").value;
+
+            if (!newDate) return alert("Veuillez sélectionner une date.");
+
+            if (!confirm(`Êtes-vous sûr de vouloir ajouter la date ${newDate}?`)) return;
 
             try {
                 const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
                 const user = (await response.json())[0];
-                const existingDates = user["Disponibilités"] ? user["Disponibilités"].split(",") : [];
-
-                if (existingDates.includes(newDate)) {
-                    alert("Cette date est déjà ajoutée à vos participations.");
-                    return;
-                }
-
-                const updatedDates = [...existingDates, newDate].join(",");
+                const updatedDates = user["Disponibilités"]
+                    ? `${user["Disponibilités"]},${newDate}`
+                    : newDate;
 
                 await fetch(apiUrl, {
                     method: "PATCH",
@@ -259,14 +263,18 @@
             const endDate = new Date("2025-12-31");
             let currentDate = startDate;
 
-            const excludedDates = existingDates.split(",").map(date => date.trim());
-
             while (currentDate <= endDate) {
                 if (currentDate.getDay() === 2) {
-                    const formattedDate = currentDate.toISOString().split("T")[0];
-                    if (!excludedDates.includes(formattedDate)) {
+                    const isVacation = vacationDates.some(vacation =>
+                        currentDate >= vacation.start && currentDate <= vacation.end
+                    );
+
+                    const dateISO = currentDate.toISOString().split("T")[0];
+                    const isAlreadySelected = existingDates.split(",").includes(dateISO);
+
+                    if (!isVacation && !isAlreadySelected) {
                         const option = document.createElement("option");
-                        option.value = formattedDate;
+                        option.value = dateISO;
                         option.textContent = currentDate.toLocaleDateString("fr-FR", {
                             weekday: "long",
                             year: "numeric",
