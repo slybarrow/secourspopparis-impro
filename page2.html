@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Ateliers Théâtre d'Improvisation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(120deg, #f26419, #0078D7);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .form-container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        header img {
+            height: 60px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        h1 {
+           color: white !important;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            color: #000F9F;
+            font-size: 22px;
+            text-align: center;
+            margin-top: 0;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 15px 0 5px;
+            color: #333;
+        }
+        label span {
+            color: #f26419;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+        .info, .expectations {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+        .info strong {
+            color: #333;
+        }
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 10px 0;
+        }
+        .mentions {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #333;
+        }
+        .date-container {
+            background: #f2f2f2;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .full {
+            color: red;
+        }
+    </style>
+    <script>
+        // Validation du formulaire avant soumission
+        function validateForm(event) {
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const selectedDates = document.getElementById("available-dates").selectedOptions;
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const phoneRegex = /^(\+33|0)[1-9](\d{2}){4}$/;
+
+            if (!emailRegex.test(email)) {
+                alert("Veuillez entrer une adresse e-mail valide.");
+                event.preventDefault();
+                return false;
+            }
+
+            if (phone && !phoneRegex.test(phone)) {
+                alert("Veuillez entrer un numéro de téléphone valide (ex. 06 12 34 56 78). ");
+                event.preventDefault();
+                return false;
+            }
+
+            const age = document.getElementById("age").value;
+            if (age < 18) {
+                alert("Vous devez avoir au moins 18 ans pour vous inscrire.");
+                event.preventDefault();
+                return false;
+            }
+
+            if (selectedDates.length === 0) {
+                alert("Veuillez sélectionner au moins un mardi disponible.");
+                event.preventDefault();
+                return false;
+            }
+
+            // Concaténer les dates sélectionnées avant soumission
+            const dateValues = Array.from(selectedDates).map(option => option.value).join(", ");
+            document.getElementById("hidden-dates").value = dateValues;
+
+            return true;
+        }
+
+        // Génération des dates dynamiques avec compteur de places disponibles
+        document.addEventListener("DOMContentLoaded", async () => {
+            const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
+            const calendar = document.getElementById("available-dates");
+            const dateCounter = document.getElementById("date-count");
+
+            // Plages de vacances scolaires à exclure
+            const vacationDates = [
+                { start: new Date("2025-02-22"), end: new Date("2025-03-10") }, // Vacances d'hiver
+                { start: new Date("2025-04-19"), end: new Date("2025-05-05") }, // Vacances de printemps
+                { start: new Date("2025-07-05"), end: new Date("2025-09-01") }, // Grandes vacances
+                { start: new Date("2025-10-18"), end: new Date("2025-11-03") }, // Vacances de la Toussaint
+                { start: new Date("2025-12-20"), end: new Date("2026-01-05") }, // Vacances de Noël
+            ];
+
+            try {
+                // Récupérer les données depuis SheetDB
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                console.log("Données récupérées depuis SheetDB :", data);
+
+                // Comptabiliser les inscriptions par date
+                const dateCounts = {};
+                data.forEach(entry => {
+                    if (entry["Disponibilités"]) {
+                        entry["Disponibilités"].split(",").forEach(date => {
+                            dateCounts[date.trim()] = (dateCounts[date.trim()] || 0) + 1;
+                        });
+                    }
+                });
+
+                console.log("Nombre d'inscriptions par date :", dateCounts);
+
+                // Générer les mardis de 2025
+                const startDate = new Date("2025-01-14"); // Premier mardi
+                const endDate = new Date("2025-12-31"); // Fin de l'année
+                let currentDate = startDate;
+
+                while (currentDate <= endDate) {
+                    if (currentDate.getDay() === 2) { // Vérifie si c'est un mardi
+                        const isVacation = vacationDates.some(vacation =>
+                            currentDate >= vacation.start && currentDate <= vacation.end
+                        );
+
+                        const dateISO = currentDate.toISOString().split("T")[0];
+
+                        if (!isVacation) {
+                            const availableSpots = 16 - (dateCounts[dateISO] || 0);
+                            const option = document.createElement("option");
+                            option.value = dateISO;
+                            option.textContent = `${currentDate.toLocaleDateString("fr-FR", {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            })} (${availableSpots}/16 places disponibles)`;
+
+                            // Marquer les dates complètes
+                            if (availableSpots <= 0) {
+                                option.textContent = `${currentDate.toLocaleDateString("fr-FR", {
+                                    weekday: "long",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                })} (Complet)`;
+                                option.disabled = true;
+                                option.classList.add("full");
+                            }
+
+                            calendar.appendChild(option);
+                        }
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1); // Passe au jour suivant
+                }
+
+                // Mettre à jour le compteur de dates sélectionnées
+                calendar.addEventListener("change", () => {
+                    const selectedDates = [...calendar.selectedOptions];
+                    dateCounter.textContent = `${selectedDates.length} dates sélectionnées.`;
+                });
+            } catch (error) {
+                console.error("Erreur lors de la récupération des disponibilités :", error);
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
+        <h1 style="color: #001f3f;">Inscription aux Ateliers Théâtre d'Improvisation</h1>
+    </header>
+    <div class="form-container">
+       
+        <h2>Inscription</h2>
+
+        <!-- Formulaire -->
+        <form action="https://sheetdb.io/api/v1/garbqmebupvlo" method="POST" onsubmit="return validateForm(event)">
+            <label for="name">Nom complet <span>*</span></label>
+            <input type="text" id="name" name="NOM" required>
+
+            <label for="firstname">Prénom <span>*</span></label>
+            <input type="text" id="firstname" name="Prénom" required>
+
+            <label for="age">Âge <span>*</span></label>
+            <input type="number" id="age" name="Âge" min="18" max="100" required>
+
+            <label for="gender">Genre :</label>
+            <select id="gender" name="Genre">
+                <option value="">-- Sélectionnez --</option>
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+                <option value="Intersexué">Intersexué</option>
+                <option value="Autre">Autre</option>
+                <option value="Préférer ne pas répondre">Préférer ne pas répondre</option>
+            </select>
+
+            <label for="email">Adresse e-mail <span>*</span></label>
+            <input type="email" id="email" name="E-mail" required>
+
+            <label for="phone">Numéro de téléphone :</label>
+            <input type="tel" id="phone" name="Téléphone" placeholder="Exemple : 06 12 34 56 78">
+
+            <label for="affiliation">Je suis un(e) <span>*</span> :</label>
+            <select id="affiliation" name="Affiliation" required>
+                <option value="">-- Sélectionnez --</option>
+                <option value="Bénéficiaire du Secours Populaire">Bénéficiaire du Secours Populaire</option>
+                <option value="Bénévole du Secours Populaire">Bénévole du Secours Populaire</option>
+            </select>
+
+            <label for="available-dates">Sélectionnez vos mardis<br>(16 personnes par cours) :</label>
+            <select id="available-dates" name="Disponibilités" multiple>
+                <!-- Les dates seront générées par JavaScript -->
+            </select>
+            <input type="hidden" id="hidden-dates" name="Disponibilités"> <!-- Champ caché pour envoyer les dates sélectionnées -->
+            <p id="date-count" style="font-size: 14px; color: #555;">0 dates sélectionnées.</p>
+
+            <label>
+                <input type="checkbox" id="image-rights" name="Image" value="oui">
+                J'accepte que des images où je figure soient utilisées à des fins de communication.
+            </label>
+
+            <!-- Désactivation de captcha et ajout de redirection -->
+            <input type="hidden" name="_next" value="https://slybarrow.github.io/inscription-ateliers-impro/merci.html">
+            
+
+            <button type="submit">Envoyer l'inscription</button>
+      <script>
+    document.querySelector("form").addEventListener("submit", function (event) {
+        event.preventDefault(); // Empêche la soumission par défaut
+        const formData = new FormData(event.target);
+        fetch("https://sheetdb.io/api/v1/garbqmebupvlo", {
+            method: "POST",
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = "https://slybarrow.github.io/inscription-ateliers-impro/merci.html";
+            } else {
+                alert("Une erreur est survenue. Veuillez réessayer.");
+            }
+        })
+        .catch(() => {
+            alert("Impossible de soumettre le formulaire pour le moment.");
+        });
+    });
+</script>
+</form>
+
+        <div class="mentions">
+            <p><strong>Pour plus d’informations :</strong> Contactez-nous à <a href="mailto:EDUCATION.POPULAIRE@secourspopparis.org">EDUCATION.POPULAIRE@secourspopparis.org</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

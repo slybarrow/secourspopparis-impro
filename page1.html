@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Ateliers Théâtre d'Improvisation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(120deg, #f26419, #0078D7);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .form-container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        header img {
+            height: 60px;
+            margin: 40px auto 20px;
+        }
+        h1 {
+            color: #001f3f;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            color: #000F9F;
+            font-size: 22px;
+            text-align: center;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #555;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .button-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 250px;
+            width: 320px;
+        }
+        .button-card h2 {
+            color: #000F9F;
+            font-size: 18px;
+        }
+        .button-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: auto;
+        }
+        .button-card a, .button-card button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #0078D7;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button-card button {
+            margin-top: auto;
+        }
+        .button-card a:hover, .button-card button:hover {
+            background-color: #005bb5;
+        }
+        .button-card input {
+            padding: 10px;
+            margin-bottom: 15px;
+            width: calc(100% - 20px);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
+        <h1>Inscription aux Ateliers Théâtre d'Improvisation</h1>
+    </header>
+    <div class="form-container">
+        <!-- Section : À quoi s'attendre -->
+        <h2>À quoi s'attendre ?</h2>
+        <p>Les ateliers de théâtre d'improvisation sont un lieu d'expression, de créativité et de partage. Vous apprendrez à lâcher prise, à développer votre spontanéité et à travailler en équipe dans une ambiance bienveillante.</p>
+
+        <!-- Section : Quand et où ? -->
+        <h2>Quand et où ?</h2>
+        <p>Les ateliers ont lieu tous les mardis de 19h00 à 21h00 au Secours Populaire, 6 passage Ramey, 75018 Paris.</p>
+
+        <!-- Boutons principaux -->
+        <div class="buttons-container">
+            <!-- Carte pour les nouveaux participants -->
+            <div class="button-card">
+                <h2>Vous êtes nouveau ?</h2>
+                <p>Inscrivez-vous dès maintenant pour participer à nos ateliers.</p>
+                <a href="#formulaire">Je veux m'inscrire</a>
+            </div>
+
+            <!-- Carte pour les participants déjà inscrits -->
+            <div class="button-card">
+                <h2>Déjà inscrit ?</h2>
+                <p>Accédez à votre espace pour modifier vos disponibilités.</p>
+                <form action="mon-compte.html" method="GET">
+                    <input type="email" name="email" placeholder="Votre email" required>
+                    <button type="submit">Accéder à mon espace</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
