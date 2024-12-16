@@ -51,9 +51,10 @@
             align-items: stretch;
             gap: 30px;
             margin-top: 30px;
+            flex-wrap: wrap; /* Permet aux cartes de s'empiler sur les petits écrans */
         }
         .button-card {
-            background: #fff;
+            background: #CCE6F4;
             border: 1px solid #ddd;
             border-radius: 10px;
             padding: 20px;
@@ -64,6 +65,7 @@
             justify-content: space-between;
             min-height: 250px;
             width: 320px;
+            margin-bottom: 20px; /* Ajoute un espacement entre les cartes sur petits écrans */
         }
         .button-card h2 {
             color: #000F9F;
@@ -77,7 +79,7 @@
         .button-card a, .button-card button {
             display: inline-block;
             padding: 10px 20px;
-            background-color: #0078D7;
+            background-color: #FFA630;
             color: white;
             text-decoration: none;
             border: none;
@@ -89,7 +91,7 @@
             margin-top: auto;
         }
         .button-card a:hover, .button-card button:hover {
-            background-color: #005bb5;
+            background-color: #e59426;
         }
         .button-card input {
             padding: 10px;
@@ -97,6 +99,42 @@
             width: calc(100% - 20px);
             border: 1px solid #ccc;
             border-radius: 5px;
+        }
+
+        /* Styles Responsives */
+        @media (max-width: 768px) {
+            header img {
+                height: 50px; /* Réduit la taille de l'image sur mobile */
+            }
+            h1 {
+                font-size: 24px; /* Réduit la taille du titre */
+            }
+            .button-card {
+                width: 100%; /* Les cartes prennent toute la largeur de l'écran */
+                margin: 0; /* Supprime les marges latérales */
+            }
+            .buttons-container {
+                gap: 15px; /* Réduit l'espacement entre les cartes */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 20px;
+            }
+            p {
+                font-size: 14px;
+            }
+            .button-card h2 {
+                font-size: 16px;
+            }
+            .button-card p {
+                font-size: 12px;
+            }
+            .button-card a, .button-card button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
         }
     </style>
 </head>
@@ -106,31 +144,31 @@
         <h1>Inscription aux Ateliers Théâtre d'Improvisation</h1>
     </header>
     <div class="form-container">
-        <!-- Section : À quoi s'attendre -->
-        <h2>À quoi s'attendre ?</h2>
-        <p>Les ateliers de théâtre d'improvisation sont un lieu d'expression, de créativité et de partage. Vous apprendrez à lâcher prise, à développer votre spontanéité et à travailler en équipe dans une ambiance bienveillante.</p>
+        <h2>À quoi s’attendre ?</h2>
+        <p>Plongez dans un univers de créativité, de spontanéité et de bonne humeur ! Ces séances sont conçues pour :</p>
+        <ul>
+            <li><strong>Vous amuser avant tout :</strong> des exercices et des jeux dynamiques pour lâcher prise et partager des moments uniques.</li>
+            <li><strong>Explorer votre créativité :</strong> apprendre à inventer des histoires, à jouer des personnages et à improviser des situations inattendues.</li>
+            <li><strong>Gagner en confiance :</strong> développer l’écoute, l’expression, et s’affirmer dans un cadre bienveillant et convivial.</li>
+            <li><strong>Travailler en équipe :</strong> collaborer avec les autres participants pour créer des scènes drôles, touchantes ou surprenantes.</li>
+        </ul>
 
-        <!-- Section : Quand et où ? -->
-        <h2>Quand et où ?</h2>
-        <p>Les ateliers ont lieu tous les mardis de 19h00 à 21h00 au Secours Populaire, 6 passage Ramey, 75018 Paris.</p>
-
-        <!-- Boutons principaux -->
+        <h2>Quand et Où ?</h2>
+        <p><strong>Les ateliers ont lieu à partir du mardi 14 janvier 2025.</strong><br>
+        Adresse : Secours populaire de Paris - 6, passage Ramey 75018</p>
+    </div>
+    <div class="form-container">
         <div class="buttons-container">
-            <!-- Carte pour les nouveaux participants -->
             <div class="button-card">
-                <h2>Vous êtes nouveau ?</h2>
-                <p>Inscrivez-vous dès maintenant pour participer à nos ateliers.</p>
-                <a href="page2">Je veux m'inscrire</a>
+                <h2>Je veux m'inscrire</h2>
+                <p>Rejoignez-nous pour des moments inoubliables d'improvisation !</p>
+                <a href="page2">S'inscrire</a>
             </div>
-
-            <!-- Carte pour les participants déjà inscrits -->
             <div class="button-card">
-                <h2>Déjà inscrit ?</h2>
-                <p>Accédez à votre espace pour modifier vos disponibilités.</p>
-                <form action="mon-compte.html" method="GET">
-                    <input type="email" name="email" placeholder="Votre email" required>
-                    <button type="submit">Accéder à mon espace</button>
-                </form>
+                <h2>Accéder à mon espace</h2>
+                <p>Modifiez vos informations ou gérez vos inscriptions.</p>
+                <input type="email" placeholder="Entrez votre email">
+                <button>Valider</button>
             </div>
         </div>
     </div>
