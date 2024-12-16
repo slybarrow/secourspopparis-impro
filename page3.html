@@ -65,10 +65,6 @@
             color: #000F9F;
             margin-bottom: 10px;
         }
-        .section p {
-            font-size: 16px;
-            color: #333;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -93,7 +89,7 @@
         <div id="emailSection">
             <input type="email" id="emailInput" placeholder="Entrez votre email" required>
             <input type="text" id="nameInput" placeholder="Entrez votre nom" required>
-            <button onclick="fetchUserData()">Valider</button>
+            <button onclick="validateUser()">Valider</button>
         </div>
 
         <div id="userInfoSection" style="display: none;" class="section">
@@ -106,65 +102,41 @@
             <input type="email" id="userEmail" disabled>
             <label for="userPhone">Téléphone :</label>
             <input type="tel" id="userPhone">
-
-            <h2>Vos participations :</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="participationTable"></tbody>
-            </table>
-
-            <h2>Ajouter une participation :</h2>
-            <select id="newDate">
-                <option value="">-- Sélectionnez une date --</option>
-            </select>
-            <button onclick="addParticipation()">Ajouter</button>
-
-            <h2>Commentaires :</h2>
-            <textarea id="userComment" rows="4" placeholder="Ajoutez vos commentaires..."></textarea>
-            <button onclick="saveComment()">Enregistrer les commentaires</button>
         </div>
     </div>
 
     <script>
         const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
-        async function fetchUserData() {
+        async function validateUser() {
             const email = document.getElementById("emailInput").value.trim();
             const name = document.getElementById("nameInput").value.trim().toUpperCase();
-            
+
             if (!email || !name) {
                 alert("Veuillez entrer votre email et votre nom.");
                 return;
             }
 
-            const queryUrl = `${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`;
-            console.log("Requête API envoyée à : ", queryUrl);
-
             try {
-                const response = await fetch(queryUrl);
+                // Récupération de toutes les données
+                const response = await fetch(apiUrl);
                 const data = await response.json();
 
-                if (data.length === 0) {
+                // Filtrage strict basé sur le NOM et l'E-mail
+                const match = data.find(entry => 
+                    entry["E-mail"].toLowerCase() === email.toLowerCase() &&
+                    entry["NOM"] === name
+                );
+
+                if (!match) {
                     alert("Aucune correspondance trouvée. Vérifiez vos informations.");
                     return;
                 }
 
-                // Recherche stricte dans les résultats
-                const exactMatch = data.find(entry => entry["E-mail"] === email && entry["NOM"] === name);
-                if (!exactMatch) {
-                    alert("Aucune correspondance exacte trouvée. Veuillez vérifier vos informations.");
-                    return;
-                }
-
-                displayUserData(exactMatch);
+                displayUserData(match);
             } catch (error) {
-                console.error("Erreur lors de la récupération des données :", error);
-                alert("Erreur de communication avec le serveur. Veuillez réessayer plus tard.");
+                console.error("Erreur lors de la validation :", error);
+                alert("Impossible de vérifier vos informations pour le moment.");
             }
         }
 
@@ -175,96 +147,8 @@
             document.getElementById("userName").value = user["NOM"];
             document.getElementById("userFirstName").value = user["Prénom"];
             document.getElementById("userEmail").value = user["E-mail"];
-            document.getElementById("userPhone").value = user["Téléphone"] || "";
-            document.getElementById("userComment").value = user["Commentaires"] || "";
-
-            loadParticipationTable(user["Disponibilités"]);
-            loadAvailableDates();
-        }
-
-        function loadParticipationTable(dates) {
-            const tableBody = document.getElementById("participationTable");
-            tableBody.innerHTML = "";
-
-            if (dates) {
-                dates.split(",").forEach(date => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${date}</td>
-                        <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-
-        async function loadAvailableDates() {
-            const calendar = document.getElementById("newDate");
-            calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
-
-            const startDate = new Date("2025-01-14");
-            const endDate = new Date("2025-12-31");
-            let currentDate = startDate;
-
-            while (currentDate <= endDate) {
-                if (currentDate.getDay() === 2) {
-                    const option = document.createElement("option");
-                    option.value = currentDate.toISOString().split("T")[0];
-                    option.textContent = currentDate.toLocaleDateString("fr-FR", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    });
-                    calendar.appendChild(option);
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-        }
-
-        async function addParticipation() {
-            const email = document.getElementById("userEmail").value;
-            const newDate = document.getElementById("newDate").value;
-
-            if (!newDate) return alert("Veuillez sélectionner une date.");
-
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-                const user = await response.json()[0];
-                const updatedDates = user["Disponibilités"]
-                    ? `${user["Disponibilités"]},${newDate}`
-                    : newDate;
-
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
-                });
-
-                alert("Participation ajoutée avec succès !");
-                loadParticipationTable(updatedDates);
-            } catch (error) {
-                console.error("Erreur lors de l'ajout de la participation :", error);
-            }
-        }
-
-        async function saveComment() {
-            const email = document.getElementById("userEmail").value;
-            const comment = document.getElementById("userComment").value;
-
-            try {
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Commentaires": comment })
-                });
-
-                alert("Commentaire enregistré avec succès !");
-            } catch (error) {
-                console.error("Erreur lors de l'enregistrement du commentaire :", error);
-            }
+            document.getElementById("userPhone").value = user["Téléphone"] || "Non renseigné";
         }
     </script>
 </body>
 </html>
-
