@@ -83,6 +83,12 @@
         .button-card a:hover, .button-card button:hover {
             background-color: #e59426;
         }
+        .button-card .email-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px; /* Réduit l'espace au-dessus de la boîte email */
+        }
         .button-card input {
             padding: 8px;
             margin-right: 8px;
@@ -147,11 +153,11 @@
                 <h2 style="font-size: 28px; color: #000F9F;">Rejoignez-nous !</h2>
                 <a href="page2.html" style="font-size: 18px; color: #000F9F; background-color: #FFA630; padding: 15px 30px;">Je m'inscris</a>
             </div>
-             <div class="form-container">
-        <div class="buttons-container">
             <div class="button-card">
                 <h2 style="font-size: 28px; color: #000F9F;">Mon Espace</h2>
-                <a href="page3.html" style="font-size: 18px; color: #000F9F; background-color: #FFA630; padding: 15px 30px;">Valider</button>
+                <div class="email-box">
+                    <input type="email" placeholder="Entrez votre email" style="width: 100%;">
+                    <button style="font-size: 16px; color: #000F9F; background-color: #FFA630;">Valider</button>
                 </div>
             </div>
         </div>
