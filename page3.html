@@ -135,14 +135,14 @@
 
         async function fetchUserData() {
             const email = document.getElementById("emailInput").value;
-            const name = document.getElementById("nameInput").value;
+            const name = document.getElementById("nameInput").value.toUpperCase();
             if (!email || !name) {
                 alert("Veuillez entrer votre email et votre nom.");
                 return;
             }
 
             try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&Nom=${encodeURIComponent(name)}`);
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
                 const data = await response.json();
 
                 if (data.length === 0) {
@@ -161,7 +161,7 @@
             document.getElementById("emailSection").style.display = "none";
             document.getElementById("userInfoSection").style.display = "block";
 
-            document.getElementById("userName").value = user["Nom"];
+            document.getElementById("userName").value = user["NOM"];
             document.getElementById("userFirstName").value = user["Prénom"];
             document.getElementById("userEmail").value = user["E-mail"];
             document.getElementById("userPhone").value = user["Téléphone"] || "";
@@ -248,4 +248,11 @@
                     body: JSON.stringify({ "E-mail": email, "Commentaires": comment })
                 });
 
-                alert
+                alert("Commentaire enregistré avec succès !");
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement du commentaire :", error);
+            }
+        }
+    </script>
+</body>
+</html>
