@@ -118,17 +118,19 @@
             }
 
             try {
-                // Récupération de toutes les données
                 const response = await fetch(apiUrl);
                 const data = await response.json();
+                console.log("Données reçues :", data);
 
-                // Filtrage strict basé sur le NOM et l'E-mail
+                // Correspondance stricte
                 const match = data.find(entry => 
+                    entry["E-mail"] && entry["NOM"] &&
                     entry["E-mail"].toLowerCase() === email.toLowerCase() &&
-                    entry["NOM"] === name
+                    entry["NOM"].toUpperCase() === name
                 );
 
                 if (!match) {
+                    console.log("Aucune correspondance trouvée. Données reçues :", data);
                     alert("Aucune correspondance trouvée. Vérifiez vos informations.");
                     return;
                 }
