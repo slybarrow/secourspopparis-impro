@@ -14,78 +14,68 @@
         }
         .form-container {
             max-width: 700px;
-            margin: 50px auto;
-            padding: 25px;
+            margin: 30px auto;
+            padding: 20px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
         }
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         header img {
-            height: 60px;
-            margin: 40px auto 20px;
+            height: 50px;
+            margin: 30px auto 15px;
         }
         h1 {
             color: #001f3f;
-            font-size: 28px;
-            margin-bottom: 15px;
+            font-size: 26px;
+            margin-bottom: 10px;
         }
         h2 {
             color: #000F9F;
-            font-size: 22px;
+            font-size: 20px;
             text-align: center;
-        }
-        p {
-            font-size: 16px;
-            line-height: 1.5;
-            color: #555;
-            text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 8px; /* Réduit l'espace sous le titre */
         }
         .buttons-container {
             display: flex;
-            justify-content: center;
-            align-items: stretch;
-            gap: 30px;
-            margin-top: 30px;
-            flex-wrap: wrap; /* Permet aux cartes de s'empiler sur les petits écrans */
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px; /* Réduit l'écart entre les cartes */
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
         .button-card {
             background: #CCE6F4;
             border: 1px solid #ddd;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 250px;
-            width: 320px;
-            margin-bottom: 20px; /* Ajoute un espacement entre les cartes sur petits écrans */
+            min-height: 130px;
+            width: 48%;
         }
         .button-card h2 {
-            color: #000F9F;
-            font-size: 18px;
-        }
-        .button-card p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: auto;
+            font-size: 16px;
+            margin-bottom: 5px; /* Réduit l'espace sous le titre */
         }
         .button-card a, .button-card button {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 8px 16px;
             background-color: #FFA630;
             color: white;
             text-decoration: none;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
+            margin: 0 auto;
+            width: fit-content;
         }
         .button-card button {
             margin-top: auto;
@@ -93,55 +83,55 @@
         .button-card a:hover, .button-card button:hover {
             background-color: #e59426;
         }
+        .button-card .email-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px; /* Réduit l'espace au-dessus de la boîte email */
+        }
         .button-card input {
-            padding: 10px;
-            margin-bottom: 15px;
-            width: calc(100% - 20px);
+            padding: 8px;
+            margin-right: 8px;
+            width: calc(100% - 80px);
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-
-        /* Styles Responsives */
         @media (max-width: 768px) {
             header img {
-                height: 50px; /* Réduit la taille de l'image sur mobile */
+                height: 40px;
             }
             h1 {
-                font-size: 24px; /* Réduit la taille du titre */
+                font-size: 22px;
             }
             .button-card {
-                width: 100%; /* Les cartes prennent toute la largeur de l'écran */
-                margin: 0; /* Supprime les marges latérales */
+                width: 100%; /* Empile les cartes sur petit écran */
             }
             .buttons-container {
-                gap: 15px; /* Réduit l'espacement entre les cartes */
+                gap: 10px;
             }
         }
-
         @media (max-width: 480px) {
             h1 {
-                font-size: 20px;
-            }
-            p {
-                font-size: 14px;
+                font-size: 18px;
             }
             .button-card h2 {
-                font-size: 16px;
-            }
-            .button-card p {
-                font-size: 12px;
+                font-size: 14px;
             }
             .button-card a, .button-card button {
-                font-size: 14px;
-                padding: 8px 16px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .button-card input {
+                font-size: 12px;
+                padding: 6px;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
-        <h1>Inscription aux Ateliers Théâtre d'Improvisation</h1>
+        <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français" style="height: 60px; margin-top: 40px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+        <h1 style="color: white; font-size: 28px; margin-bottom: 15px;">Inscription aux Ateliers Théâtre d'Improvisation</h1>
     </header>
     <div class="form-container">
         <h2>À quoi s’attendre ?</h2>
@@ -154,21 +144,21 @@
         </ul>
 
         <h2>Quand et Où ?</h2>
-        <p><strong>Les ateliers ont lieu à partir du mardi 14 janvier 2025.</strong><br>
+        <p><strong>Les ateliers ont lieu tous les mardis à partir du mardi 14 janvier 2025, de 19h à 21h.</strong><br>
         Adresse : Secours populaire de Paris - 6, passage Ramey 75018</p>
     </div>
     <div class="form-container">
         <div class="buttons-container">
             <div class="button-card">
-                <h2>Je veux m'inscrire</h2>
-                <p>Rejoignez-nous pour des moments inoubliables d'improvisation !</p>
-                <a href="page2">S'inscrire</a>
+                <h2>Rejoignez-nous !</h2>
+                <a href="page2">Je m'inscris</a>
             </div>
             <div class="button-card">
-                <h2>Accéder à mon espace</h2>
-                <p>Modifiez vos informations ou gérez vos inscriptions.</p>
-                <input type="email" placeholder="Entrez votre email">
-                <button>Valider</button>
+                <h2>Mon Espace</h2>
+                <div class="email-box">
+                    <input type="email" placeholder="Entrez votre email">
+                    <button>Valider</button>
+                </div>
             </div>
         </div>
     </div>
