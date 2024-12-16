@@ -106,49 +106,27 @@
             <input type="email" id="userEmail" disabled>
             <label for="userPhone">Téléphone :</label>
             <input type="tel" id="userPhone">
-
-            <h2>Vos participations :</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="participationTable"></tbody>
-            </table>
-
-            <h2>Ajouter une participation :</h2>
-            <select id="newDate">
-                <option value="">-- Sélectionnez une date --</option>
-            </select>
-            <button onclick="addParticipation()">Ajouter</button>
         </div>
     </div>
 
     <script>
         const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
-        // Vacances scolaires à exclure
-        const vacationDates = [
-            { start: new Date("2025-02-22"), end: new Date("2025-03-10") }, // Vacances d'hiver
-            { start: new Date("2025-04-19"), end: new Date("2025-05-05") }, // Vacances de printemps
-            { start: new Date("2025-07-05"), end: new Date("2025-09-01") }, // Grandes vacances
-            { start: new Date("2025-10-18"), end: new Date("2025-11-03") }, // Vacances de la Toussaint
-            { start: new Date("2025-12-20"), end: new Date("2026-01-05") }, // Vacances de Noël
-        ];
-
         async function fetchUserData() {
             const email = document.getElementById("emailInput").value.trim();
             const name = document.getElementById("nameInput").value.trim().toUpperCase();
-            
+
             if (!email || !name) {
                 alert("Veuillez entrer votre email et votre nom.");
                 return;
             }
 
             try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
+                // Requête combinant NOM et E-mail
+                const queryUrl = `${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`;
+                console.log("Requête API envoyée à : ", queryUrl);
+
+                const response = await fetch(queryUrl);
                 const data = await response.json();
 
                 if (data.length === 0) {
@@ -156,6 +134,7 @@
                     return;
                 }
 
+                // Recherche stricte
                 const exactMatch = data.find(entry => entry["E-mail"] === email && entry["NOM"] === name);
                 if (!exactMatch) {
                     alert("Aucune correspondance exacte trouvée. Veuillez vérifier vos informations.");
@@ -177,126 +156,6 @@
             document.getElementById("userFirstName").value = user["Prénom"];
             document.getElementById("userEmail").value = user["E-mail"];
             document.getElementById("userPhone").value = user["Téléphone"] || "";
-
-            loadParticipationTable(user["Disponibilités"]);
-            loadAvailableDates(user["Disponibilités"]);
-        }
-
-        function loadParticipationTable(dates) {
-            const tableBody = document.getElementById("participationTable");
-            tableBody.innerHTML = "";
-
-            if (dates) {
-                dates.split(",").forEach(date => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${formatDateToFrench(date)}</td>
-                        <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-
-        async function loadAvailableDates(selectedDates) {
-            const calendar = document.getElementById("newDate");
-            calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
-
-            const startDate = new Date("2025-01-14");
-            const endDate = new Date("2025-12-31");
-            let currentDate = startDate;
-
-            while (currentDate <= endDate) {
-                if (currentDate.getDay() === 2) { // Mardis uniquement
-                    const isVacation = vacationDates.some(vacation =>
-                        currentDate >= vacation.start && currentDate <= vacation.end
-                    );
-
-                    const dateISO = currentDate.toISOString().split("T")[0];
-
-                    if (!isVacation && (!selectedDates || !selectedDates.includes(dateISO))) {
-                        const option = document.createElement("option");
-                        option.value = dateISO;
-                        option.textContent = `${formatDateToFrench(dateISO)}`;
-                        calendar.appendChild(option);
-                    }
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-        }
-
-        async function addParticipation() {
-            const email = document.getElementById("userEmail").value;
-            const newDate = document.getElementById("newDate").value;
-
-            if (!newDate) return alert("Veuillez sélectionner une date.");
-
-            if (!confirm(`Êtes-vous sûr(e) d'ajouter la participation pour le ${formatDateToFrench(newDate)} ?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-                const user = await response.json()[0];
-
-                const updatedDates = user["Disponibilités"]
-                    ? `${user["Disponibilités"]},${newDate}`
-                    : newDate;
-
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
-                });
-
-                alert("Participation ajoutée avec succès !");
-                loadParticipationTable(updatedDates);
-                loadAvailableDates(updatedDates);
-            } catch (error) {
-                console.error("Erreur lors de l'ajout de la participation :", error);
-                alert("Impossible d'ajouter la participation. Veuillez réessayer.");
-            }
-        }
-
-        async function removeParticipation(date) {
-            if (!confirm(`Êtes-vous sûr(e) de vouloir supprimer la participation pour le ${formatDateToFrench(date)} ?`)) {
-                return;
-            }
-
-            const email = document.getElementById("userEmail").value;
-
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-                const user = await response.json()[0];
-
-                const updatedDates = user["Disponibilités"]
-                    .split(",")
-                    .filter(d => d.trim() !== date)
-                    .join(",");
-
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
-                });
-
-                alert("Participation supprimée avec succès !");
-                loadParticipationTable(updatedDates);
-                loadAvailableDates(updatedDates);
-            } catch (error) {
-                console.error("Erreur lors de la suppression :", error);
-                alert("Impossible de supprimer la participation. Veuillez réessayer.");
-            }
-        }
-
-        function formatDateToFrench(isoDate) {
-            const date = new Date(isoDate);
-            return date.toLocaleDateString("fr-FR", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
         }
     </script>
 </body>
