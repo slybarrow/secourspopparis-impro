@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Espace IMPRO</title>
+    <title>Mon Espace Impro</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -148,6 +148,7 @@
 
             document.getElementById("userName").value = user["NOM"];
             document.getElementById("userFirstName").value = user["Prénom"];
+            document.getElementById("userPhone").value = user["Téléphone"];
             document.getElementById("userEmail").value = user["E-mail"];
 
             loadParticipationTable(user["Disponibilités"]);
