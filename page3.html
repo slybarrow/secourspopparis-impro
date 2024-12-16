@@ -6,32 +6,25 @@
     <title>Mon Espace IMPRO</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(120deg, #f26419, #0078D7);
             color: white;
             margin: 0;
             padding: 0;
         }
         .container {
-            max-width: 700px;
+            max-width: 800px;
             margin: 50px auto;
             padding: 25px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             color: #333;
         }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        header img {
-            height: 60px;
-            margin-bottom: 15px;
-        }
         h1 {
+            text-align: center;
             font-size: 28px;
-            margin-bottom: 20px;
+            color: #001f3f;
         }
         .section {
             margin-bottom: 30px;
@@ -39,9 +32,8 @@
         .section h2 {
             font-size: 20px;
             color: #000F9F;
-            margin-bottom: 10px;
         }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -62,127 +54,120 @@
         button:hover {
             background-color: #e59426;
         }
-        .btn-small {
-            font-size: 12px;
-            padding: 5px 10px;
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         table th, table td {
-            border: 1px solid #ddd;
             padding: 8px;
+            border: 1px solid #ddd;
             text-align: center;
         }
         table th {
             background-color: #f2f2f2;
-            color: #333;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Mon Espace IMPRO</h1>
-        </header>
+        <h1>Mon Espace IMPRO</h1>
+        <!-- Email Input Section -->
+        <div id="emailSection">
+            <h2>Accéder à votre espace</h2>
+            <input type="email" id="emailInput" placeholder="Entrez votre email" required>
+            <button onclick="fetchUserData()">Valider</button>
+        </div>
 
-        <!-- Section 1: Mon Profil -->
-        <div class="section" id="profileSection">
-            <h2>Mon Profil</h2>
-            <div id="profile">
-                <p><strong>NOM :</strong> <span id="profileName"></span></p>
-                <p><strong>Prénom :</strong> <span id="profileFirstName"></span></p>
-                <p><strong>Âge :</strong> <span id="profileAge"></span></p>
-                <p><strong>Email :</strong> <span id="profileEmail"></span></p>
-                <p><strong>Téléphone :</strong> <span id="profilePhone"></span></p>
+        <!-- User Info Section -->
+        <div id="userInfoSection" style="display: none;">
+            <div class="section">
+                <h2>Mon Profil</h2>
+                <p><strong>NOM : </strong><span id="profileName"></span></p>
+                <p><strong>Prénom : </strong><span id="profileFirstName"></span></p>
+                <p><strong>Email : </strong><span id="profileEmail"></span></p>
+                <p><strong>Téléphone : </strong><span id="profilePhone"></span></p>
             </div>
-            <button class="btn-small" onclick="unlockProfile()" id="editProfileBtn">Modifier</button>
-            <button class="btn-small" style="display: none;" onclick="updateProfile()" id="saveProfileBtn">Valider</button>
-        </div>
 
-        <!-- Section 2: Mon calendrier des mardis -->
-        <div class="section" id="calendarSection">
-            <h2>Mon calendrier des mardis</h2>
-            <table id="calendarTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
+            <div class="section">
+                <h2>Mon Calendrier des Mardis</h2>
+                <table id="calendarTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
 
-        <!-- Section 3: Ajouter des dates -->
-        <div class="section" id="addDateSection">
-            <h2>Ajouter des dates</h2>
-            <select id="newDate">
-                <option value="">-- Sélectionnez une date --</option>
-            </select>
-            <button onclick="addParticipation()">Ajouter</button>
-        </div>
+            <div class="section">
+                <h2>Ajouter une Date</h2>
+                <select id="newDate">
+                    <option value="">-- Sélectionnez une date --</option>
+                </select>
+                <button onclick="addParticipation()">Ajouter</button>
+            </div>
 
-        <!-- Section 4: Commentaire -->
-        <div class="section" id="commentSection">
-            <h2>Commentaire</h2>
-            <textarea id="comment" placeholder="Ajoutez un commentaire..."></textarea>
-            <button onclick="saveComment()">Enregistrer</button>
+            <div class="section">
+                <h2>Commentaire</h2>
+                <textarea id="comment" placeholder="Ajoutez un commentaire..."></textarea>
+                <button onclick="saveComment()">Enregistrer</button>
+            </div>
         </div>
     </div>
 
     <script>
         const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
-        function unlockProfile() {
-            document.querySelectorAll('#profile span').forEach(span => {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = span.textContent;
-                input.dataset.original = span.id;
-                span.replaceWith(input);
-            });
-            document.getElementById('editProfileBtn').style.display = 'none';
-            document.getElementById('saveProfileBtn').style.display = 'inline-block';
-        }
-
-        async function updateProfile() {
-            const email = document.querySelector("#profileEmail").textContent;
-            const updatedData = {};
-
-            document.querySelectorAll('#profile input').forEach(input => {
-                const originalId = input.dataset.original;
-                const value = input.value;
-                updatedData[originalId] = value;
-                const span = document.createElement('span');
-                span.id = originalId;
-                span.textContent = value;
-                input.replaceWith(span);
-            });
+        async function fetchUserData() {
+            const email = document.getElementById("emailInput").value;
+            if (!email) return alert("Veuillez entrer une adresse email.");
 
             try {
-                await fetch(`${apiUrl}?E-mail=${email}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(updatedData)
-                });
-                alert("Profil mis à jour avec succès !");
-            } catch (error) {
-                console.error("Erreur lors de la mise à jour du profil :", error);
-            }
+                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const data = await response.json();
 
-            document.getElementById('editProfileBtn').style.display = 'inline-block';
-            document.getElementById('saveProfileBtn').style.display = 'none';
+                if (data.length === 0) {
+                    alert("Aucune participation trouvée pour cet email.");
+                    return;
+                }
+
+                const user = data[0];
+                document.getElementById("emailSection").style.display = "none";
+                document.getElementById("userInfoSection").style.display = "block";
+
+                document.getElementById("profileName").textContent = user["Nom"];
+                document.getElementById("profileFirstName").textContent = user["Prénom"];
+                document.getElementById("profileEmail").textContent = user["E-mail"];
+                document.getElementById("profilePhone").textContent = user["Téléphone"];
+                
+                loadCalendar(user["Disponibilités"]);
+                loadAvailableDates();
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données :", error);
+            }
+        }
+
+        async function loadCalendar(dates) {
+            const tbody = document.querySelector("#calendarTable tbody");
+            tbody.innerHTML = "";
+
+            if (dates) {
+                dates.split(",").forEach(date => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td><button onclick="removeDate('${date}')">Supprimer</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
         }
 
         async function addParticipation() {
-            const email = document.querySelector("#profileEmail").textContent;
+            const email = document.getElementById("profileEmail").textContent;
             const newDate = document.getElementById("newDate").value;
             if (!newDate) return alert("Veuillez sélectionner une date.");
 
@@ -192,28 +177,28 @@
                 const currentDates = userData[0]["Disponibilités"] || "";
                 const updatedDates = currentDates ? `${currentDates}, ${newDate}` : newDate;
 
-                await fetch(`${apiUrl}`, {
+                await fetch(apiUrl, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
                 });
 
                 alert("Date ajoutée avec succès !");
-                loadCalendar();
+                loadCalendar(updatedDates);
             } catch (error) {
                 console.error("Erreur lors de l'ajout de date :", error);
             }
         }
 
         async function saveComment() {
-            const email = document.querySelector("#profileEmail").textContent;
+            const email = document.getElementById("profileEmail").textContent;
             const comment = document.getElementById("comment").value;
 
             try {
-                await fetch(`${apiUrl}?E-mail=${email}`, {
+                await fetch(apiUrl, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "Commentaire": comment })
+                    body: JSON.stringify({ "E-mail": email, "Commentaire": comment })
                 });
                 alert("Commentaire enregistré avec succès !");
             } catch (error) {
@@ -221,50 +206,49 @@
             }
         }
 
-        async function loadCalendar() {
-            const email = document.querySelector("#profileEmail").textContent;
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${email}`);
-                const data = await response.json();
-                const dates = data[0]["Disponibilités"] || "";
-                const tbody = document.querySelector("#calendarTable tbody");
-                tbody.innerHTML = "";
-
-                if (dates) {
-                    dates.split(',').forEach(date => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${date}</td>
-                            <td><button onclick="removeDate('${date}')">Supprimer</button></td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                }
-            } catch (error) {
-                console.error("Erreur lors du chargement du calendrier :", error);
-            }
-        }
-
         async function removeDate(date) {
-            const email = document.querySelector("#profileEmail").textContent;
+            const email = document.getElementById("profileEmail").textContent;
             try {
                 const response = await fetch(`${apiUrl}?E-mail=${email}`);
                 const userData = await response.json();
                 const currentDates = userData[0]["Disponibilités"]
-                    .split(',')
-                    .filter(d => d !== date)
-                    .join(', ');
+                    .split(",")
+                    .filter(d => d.trim() !== date)
+                    .join(", ");
 
-                await fetch(`${apiUrl}`, {
+                await fetch(apiUrl, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ "E-mail": email, "Disponibilités": currentDates })
                 });
 
                 alert("Date supprimée avec succès !");
-                loadCalendar();
+                loadCalendar(currentDates);
             } catch (error) {
-                console.error("Erreur lors de la suppression de la date :", error);
+                console.error("Erreur lors de la suppression de date :", error);
+            }
+        }
+
+        async function loadAvailableDates() {
+            const calendar = document.getElementById("newDate");
+            calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
+            const startDate = new Date("2025-01-14");
+            const endDate = new Date("2025-12-31");
+            let currentDate = startDate;
+
+            while (currentDate <= endDate) {
+                if (currentDate.getDay() === 2) {
+                    const option = document.createElement("option");
+                    option.value = currentDate.toISOString().split("T")[0];
+                    option.textContent = currentDate.toLocaleDateString("fr-FR", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    });
+                    calendar.appendChild(option);
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
             }
         }
     </script>
