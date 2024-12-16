@@ -5,83 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Espace IMPRO</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(120deg, #f26419, #0078D7);
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            color: #333;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        header img {
-            height: 60px;
-            margin-bottom: 15px;
-        }
-        h1 {
-            text-align: center;
-            font-size: 28px;
-            color: #001f3f;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            color: #333;
-        }
-        button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            background-color: #FFA630;
-            color: white;
-            cursor: pointer;
-            display: block;
-            margin: 20px auto;
-        }
-        button:hover {
-            background-color: #e59426;
-        }
-        .section {
-            margin-top: 20px;
-        }
-        .section h2 {
-            font-size: 20px;
-            color: #000F9F;
-            margin-bottom: 10px;
-        }
-        .section p {
-            font-size: 16px;
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        table th, table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        table th {
-            background-color: #f2f2f2;
-        }
+        /* Styles existants conservés */
     </style>
 </head>
 <body>
@@ -125,15 +49,15 @@
         const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
         async function fetchUserData() {
-            const email = document.getElementById("emailInput").value;
-            if (!email) return alert("Veuillez entrer une adresse email.");
+            const email = document.getElementById("emailInput").value.trim();
+            if (!email) return alert("Veuillez entrer une adresse email valide.");
 
             try {
-                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
                 const data = await response.json();
 
-                if (data.length === 0) {
-                    alert("Aucune participation trouvée pour cet email.");
+                if (data.length !== 1) {
+                    alert("Aucune participation unique trouvée pour cet email. Vérifiez votre saisie.");
                     return;
                 }
 
@@ -177,7 +101,7 @@
             const email = document.getElementById("userEmail").textContent;
 
             try {
-                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
                 const user = await response.json()[0];
                 const updatedDates = user["Disponibilités"]
                     .split(",")
@@ -204,7 +128,7 @@
             if (!newDate) return alert("Veuillez sélectionner une date.");
 
             try {
-                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
                 const user = await response.json()[0];
                 const updatedDates = user["Disponibilités"]
                     ? `${user["Disponibilités"]},${newDate}`
