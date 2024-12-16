@@ -6,7 +6,7 @@
     <title>Mon Espace IMPRO</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(120deg, #f26419, #0078D7);
             color: white;
             margin: 0;
@@ -98,10 +98,14 @@
 
         <div id="userInfoSection" style="display: none;" class="section">
             <h2>Vos informations :</h2>
-            <p><strong>Nom :</strong> <span id="userName"></span></p>
-            <p><strong>Prénom :</strong> <span id="userFirstName"></span></p>
-            <p><strong>Email :</strong> <span id="userEmail"></span></p>
-            <p><strong>Téléphone :</strong> <span id="userPhone"></span></p>
+            <label for="userName">Nom :</label>
+            <input type="text" id="userName" disabled>
+            <label for="userFirstName">Prénom :</label>
+            <input type="text" id="userFirstName" disabled>
+            <label for="userEmail">Email :</label>
+            <input type="email" id="userEmail" disabled>
+            <label for="userPhone">Téléphone :</label>
+            <input type="tel" id="userPhone">
 
             <h2>Vos participations :</h2>
             <table>
@@ -119,6 +123,10 @@
                 <option value="">-- Sélectionnez une date --</option>
             </select>
             <button onclick="addParticipation()">Ajouter</button>
+
+            <h2>Commentaires :</h2>
+            <textarea id="userComment" rows="4" placeholder="Ajoutez vos commentaires..."></textarea>
+            <button onclick="saveComment()">Enregistrer les commentaires</button>
         </div>
     </div>
 
@@ -150,10 +158,11 @@
             document.getElementById("emailSection").style.display = "none";
             document.getElementById("userInfoSection").style.display = "block";
 
-            document.getElementById("userName").textContent = user["Nom"];
-            document.getElementById("userFirstName").textContent = user["Prénom"];
-            document.getElementById("userEmail").textContent = user["E-mail"];
-            document.getElementById("userPhone").textContent = user["Téléphone"] || "Non renseigné";
+            document.getElementById("userName").value = user["Nom"];
+            document.getElementById("userFirstName").value = user["Prénom"];
+            document.getElementById("userEmail").value = user["E-mail"];
+            document.getElementById("userPhone").value = user["Téléphone"] || "";
+            document.getElementById("userComment").value = user["Commentaires"] || "";
 
             loadParticipationTable(user["Disponibilités"]);
             loadAvailableDates();
@@ -196,6 +205,49 @@
                     calendar.appendChild(option);
                 }
                 currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
+
+        async function addParticipation() {
+            const email = document.getElementById("userEmail").value;
+            const newDate = document.getElementById("newDate").value;
+
+            if (!newDate) return alert("Veuillez sélectionner une date.");
+
+            try {
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
+                const user = await response.json()[0];
+                const updatedDates = user["Disponibilités"]
+                    ? `${user["Disponibilités"]},${newDate}`
+                    : newDate;
+
+                await fetch(apiUrl, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
+                });
+
+                alert("Participation ajoutée avec succès !");
+                loadParticipationTable(updatedDates);
+            } catch (error) {
+                console.error("Erreur lors de l'ajout de la participation :", error);
+            }
+        }
+
+        async function saveComment() {
+            const email = document.getElementById("userEmail").value;
+            const comment = document.getElementById("userComment").value;
+
+            try {
+                await fetch(apiUrl, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "E-mail": email, "Commentaires": comment })
+                });
+
+                alert("Commentaire enregistré avec succès !");
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement du commentaire :", error);
             }
         }
     </script>
