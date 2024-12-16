@@ -134,8 +134,8 @@
         const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
 
         async function fetchUserData() {
-            const email = document.getElementById("emailInput").value;
-            const name = document.getElementById("nameInput").value.toUpperCase();
+            const email = document.getElementById("emailInput").value.trim();
+            const name = document.getElementById("nameInput").value.trim().toUpperCase();
             
             if (!email || !name) {
                 alert("Veuillez entrer votre email et votre nom.");
@@ -147,17 +147,21 @@
 
             try {
                 const response = await fetch(queryUrl);
-                console.log("Statut de la réponse : ", response.status);
-
                 const data = await response.json();
-                console.log("Données reçues : ", data);
 
                 if (data.length === 0) {
-                    alert("Aucune correspondance trouvée. Veuillez vérifier vos informations.");
+                    alert("Aucune correspondance trouvée. Vérifiez vos informations.");
                     return;
                 }
 
-                displayUserData(data[0]);
+                // Recherche stricte dans les résultats
+                const exactMatch = data.find(entry => entry["E-mail"] === email && entry["NOM"] === name);
+                if (!exactMatch) {
+                    alert("Aucune correspondance exacte trouvée. Veuillez vérifier vos informations.");
+                    return;
+                }
+
+                displayUserData(exactMatch);
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
                 alert("Erreur de communication avec le serveur. Veuillez réessayer plus tard.");
@@ -263,3 +267,4 @@
     </script>
 </body>
 </html>
+
