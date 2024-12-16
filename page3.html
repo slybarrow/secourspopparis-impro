@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<p><strong><!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -170,98 +170,7 @@
                 });
             }
         }
-   // Concaténer les dates sélectionnées avant soumission
-            const dateValues = Array.from(selectedDates).map(option => option.value).join(", ");
-            document.getElementById("hidden-dates").value = dateValues;
 
-            return true;
-        }
-
-        // Génération des dates dynamiques avec compteur de places disponibles
-        document.addEventListener("DOMContentLoaded", async () => {
-            const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
-            const calendar = document.getElementById("available-dates");
-            const dateCounter = document.getElementById("date-count");
-
-            // Plages de vacances scolaires à exclure
-            const vacationDates = [
-                { start: new Date("2025-02-22"), end: new Date("2025-03-10") }, // Vacances d'hiver
-                { start: new Date("2025-04-19"), end: new Date("2025-05-05") }, // Vacances de printemps
-                { start: new Date("2025-07-05"), end: new Date("2025-09-01") }, // Grandes vacances
-                { start: new Date("2025-10-18"), end: new Date("2025-11-03") }, // Vacances de la Toussaint
-                { start: new Date("2025-12-20"), end: new Date("2026-01-05") }, // Vacances de Noël
-            ];
-
-            try {
-                // Récupérer les données depuis SheetDB
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                console.log("Données récupérées depuis SheetDB :", data);
-
-                // Comptabiliser les inscriptions par date
-                const dateCounts = {};
-                data.forEach(entry => {
-                    if (entry["Disponibilités"]) {
-                        entry["Disponibilités"].split(",").forEach(date => {
-                            dateCounts[date.trim()] = (dateCounts[date.trim()] || 0) + 1;
-                        });
-                    }
-                });
-
-                console.log("Nombre d'inscriptions par date :", dateCounts);
-
-                // Générer les mardis de 2025
-                const startDate = new Date("2025-01-14"); // Premier mardi
-                const endDate = new Date("2025-12-31"); // Fin de l'année
-                let currentDate = startDate;
-
-                while (currentDate <= endDate) {
-                    if (currentDate.getDay() === 2) { // Vérifie si c'est un mardi
-                        const isVacation = vacationDates.some(vacation =>
-                            currentDate >= vacation.start && currentDate <= vacation.end
-                        );
-
-                        const dateISO = currentDate.toISOString().split("T")[0];
-
-                        if (!isVacation) {
-                            const availableSpots = 16 - (dateCounts[dateISO] || 0);
-                            const option = document.createElement("option");
-                            option.value = dateISO;
-                            option.textContent = `${currentDate.toLocaleDateString("fr-FR", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                            })} (${availableSpots}/16 places disponibles)`;
-
-                            // Marquer les dates complètes
-                            if (availableSpots <= 0) {
-                                option.textContent = `${currentDate.toLocaleDateString("fr-FR", {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })} (Complet)`;
-                                option.disabled = true;
-                                option.classList.add("full");
-                            }
-
-                            calendar.appendChild(option);
-                        }
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1); // Passe au jour suivant
-                }
-
-                // Mettre à jour le compteur de dates sélectionnées
-                calendar.addEventListener("change", () => {
-                    const selectedDates = [...calendar.selectedOptions];
-                    dateCounter.textContent = `${selectedDates.length} dates sélectionnées.`;
-                });
-            } catch (error) {
-                console.error("Erreur lors de la récupération des disponibilités :", error);
-            }
-        });
-        
         // Chargement des dates disponibles
         async function loadAvailableDates() {
             const calendar = document.getElementById("newDate");
