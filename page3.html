@@ -1,258 +1,30 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Espace IMPRO</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(120deg, #f26419, #0078D7);
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            color: #333;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        header img {
-            height: 60px;
-            margin-bottom: 15px;
-        }
-        h1 {
-            text-align: center;
-            font-size: 28px;
-            color: #001f3f;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            color: #333;
-        }
-        button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            background-color: #FFA630;
-            color: white;
-            cursor: pointer;
-            display: block;
-            margin: 20px auto;
-        }
-        button:hover {
-            background-color: #e59426;
-        }
-        .section {
-            margin-top: 20px;
-        }
-        .section h2 {
-            font-size: 20px;
-            color: #000F9F;
-            margin-bottom: 10px;
-        }
-        .section p {
-            font-size: 16px;
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        table th, table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        table th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
-            <h1>Mon Espace IMPRO</h1>
-        </header>
-        <div id="emailSection">
-            <input type="email" id="emailInput" placeholder="Entrez votre email" required>
-            <input type="text" id="nameInput" placeholder="Entrez votre nom" required>
-            <button onclick="fetchUserData()">Valider</button>
-        </div>
+async function fetchUserData() {
+    const email = document.getElementById("emailInput").value;
+    const name = document.getElementById("nameInput").value.toUpperCase();
+    
+    if (!email || !name) {
+        alert("Veuillez entrer votre email et votre nom.");
+        return;
+    }
 
-        <div id="userInfoSection" style="display: none;" class="section">
-            <h2>Vos informations :</h2>
-            <label for="userName">Nom :</label>
-            <input type="text" id="userName" disabled>
-            <label for="userFirstName">Prénom :</label>
-            <input type="text" id="userFirstName" disabled>
-            <label for="userEmail">Email :</label>
-            <input type="email" id="userEmail" disabled>
-            <label for="userPhone">Téléphone :</label>
-            <input type="tel" id="userPhone">
+    const queryUrl = `${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`;
+    console.log("Requête API envoyée à : ", queryUrl);
 
-            <h2>Vos participations :</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="participationTable"></tbody>
-            </table>
+    try {
+        const response = await fetch(queryUrl);
+        console.log("Statut de la réponse : ", response.status);
 
-            <h2>Ajouter une participation :</h2>
-            <select id="newDate">
-                <option value="">-- Sélectionnez une date --</option>
-            </select>
-            <button onclick="addParticipation()">Ajouter</button>
+        const data = await response.json();
+        console.log("Données reçues : ", data);
 
-            <h2>Commentaires :</h2>
-            <textarea id="userComment" rows="4" placeholder="Ajoutez vos commentaires..."></textarea>
-            <button onclick="saveComment()">Enregistrer les commentaires</button>
-        </div>
-    </div>
-
-    <script>
-        const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
-
-        async function fetchUserData() {
-            const email = document.getElementById("emailInput").value;
-            const name = document.getElementById("nameInput").value.toUpperCase();
-            if (!email || !name) {
-                alert("Veuillez entrer votre email et votre nom.");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
-                const data = await response.json();
-
-                if (data.length === 0) {
-                    alert("Aucune correspondance trouvée. Veuillez vérifier vos informations.");
-                    return;
-                }
-
-                displayUserData(data[0]);
-            } catch (error) {
-                console.error("Erreur lors de la récupération des données :", error);
-                alert("Erreur de communication avec le serveur. Veuillez réessayer plus tard.");
-            }
+        if (data.length === 0) {
+            alert("Aucune correspondance trouvée. Veuillez vérifier vos informations.");
+            return;
         }
 
-        function displayUserData(user) {
-            document.getElementById("emailSection").style.display = "none";
-            document.getElementById("userInfoSection").style.display = "block";
-
-            document.getElementById("userName").value = user["NOM"];
-            document.getElementById("userFirstName").value = user["Prénom"];
-            document.getElementById("userEmail").value = user["E-mail"];
-            document.getElementById("userPhone").value = user["Téléphone"] || "";
-            document.getElementById("userComment").value = user["Commentaires"] || "";
-
-            loadParticipationTable(user["Disponibilités"]);
-            loadAvailableDates();
-        }
-
-        function loadParticipationTable(dates) {
-            const tableBody = document.getElementById("participationTable");
-            tableBody.innerHTML = "";
-
-            if (dates) {
-                dates.split(",").forEach(date => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${date}</td>
-                        <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-
-        async function loadAvailableDates() {
-            const calendar = document.getElementById("newDate");
-            calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
-
-            const startDate = new Date("2025-01-14");
-            const endDate = new Date("2025-12-31");
-            let currentDate = startDate;
-
-            while (currentDate <= endDate) {
-                if (currentDate.getDay() === 2) {
-                    const option = document.createElement("option");
-                    option.value = currentDate.toISOString().split("T")[0];
-                    option.textContent = currentDate.toLocaleDateString("fr-FR", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    });
-                    calendar.appendChild(option);
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-        }
-
-        async function addParticipation() {
-            const email = document.getElementById("userEmail").value;
-            const newDate = document.getElementById("newDate").value;
-
-            if (!newDate) return alert("Veuillez sélectionner une date.");
-
-            try {
-                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-                const user = await response.json()[0];
-                const updatedDates = user["Disponibilités"]
-                    ? `${user["Disponibilités"]},${newDate}`
-                    : newDate;
-
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
-                });
-
-                alert("Participation ajoutée avec succès !");
-                loadParticipationTable(updatedDates);
-            } catch (error) {
-                console.error("Erreur lors de l'ajout de la participation :", error);
-            }
-        }
-
-        async function saveComment() {
-            const email = document.getElementById("userEmail").value;
-            const comment = document.getElementById("userComment").value;
-
-            try {
-                await fetch(apiUrl, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "E-mail": email, "Commentaires": comment })
-                });
-
-                alert("Commentaire enregistré avec succès !");
-            } catch (error) {
-                console.error("Erreur lors de l'enregistrement du commentaire :", error);
-            }
-        }
-    </script>
-</body>
-</html>
+        displayUserData(data[0]);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+        alert("Erreur de communication avec le serveur. Veuillez réessayer plus tard.");
+    }
+}
