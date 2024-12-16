@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace - Gestion des Participations</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(120deg, #f26419, #0078D7);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            background-color: #FFA630;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e59426;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        table th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .actions button {
+            width: auto;
+            padding: 5px 10px;
+        }
+        .delete-account {
+            background-color: #ff4d4d;
+            border: none;
+        }
+        .delete-account:hover {
+            background-color: #e04444;
+        }
+        .history-row {
+            color: #555;
+        }
+        .history-row.added {
+            background-color: #d4fcdc;
+        }
+        .history-row.removed {
+            background-color: #ffdada;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="Logo_CMJN@2x.png" alt="Secours Populaire">
+            <h1>Mon Espace</h1>
+        </header>
+
+        <input type="email" id="emailInput" placeholder="Entrez votre email">
+        <button onclick="fetchUserData()">Valider</button>
+
+        <div id="userInfo" style="display: none;">
+            <input type="text" id="userName" placeholder="Nom">
+            <input type="text" id="userFirstName" placeholder="Prénom">
+            <input type="tel" id="userPhone" placeholder="Téléphone">
+            <textarea id="userComment" placeholder="Ajouter un commentaire"></textarea>
+            <button onclick="updateUserInfo()">Mettre à jour</button>
+        </div>
+
+        <div id="addDate" style="display: none;">
+            <select id="newDate">
+                <option value="">-- Sélectionnez une date --</option>
+                <option value="2025-01-21">21 janvier 2025</option>
+                <option value="2025-01-28">28 janvier 2025</option>
+            </select>
+            <button onclick="addParticipation()">Ajouter</button>
+        </div>
+
+        <table id="participationTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <table id="historyTable" style="display: none; margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button id="deleteAccount" class="delete-account" style="display: none;" onclick="deleteAccount()">Supprimer mon compte</button>
+    </div>
+
+    <script>
+        const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo"; // Remplacez par votre URL API
+
+        async function fetchUserData() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) return alert('Veuillez entrer un email valide.');
+
+            try {
+                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    alert("Aucune participation trouvée pour cet email.");
+                    return;
+                }
+
+                populateUserInfo(data[0]);
+                populateTable(data[0]["Disponibilités"]);
+                populateHistory(data[0]["Historique"]);
+                document.getElementById('deleteAccount').style.display = 'block';
+                document.getElementById('addDate').style.display = 'block';
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données :", error);
+            }
+        }
+
+        function populateUserInfo(userData) {
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('userName').value = userData["Nom"] || "";
+            document.getElementById('userFirstName').value = userData["Prénom"] || "";
+            document.getElementById('userPhone').value = userData["Téléphone"] || "";
+            document.getElementById('userComment').value = userData["Commentaire"] || "";
+        }
+
+        async function updateUserInfo() {
+            const email = document.getElementById("emailInput").value;
+            const name = document.getElementById("userName").value;
+            const firstName = document.getElementById("userFirstName").value;
+            const phone = document.getElementById("userPhone").value;
+            const comment = document.getElementById("userComment").value;
+
+            try {
+                await fetch(`${apiUrl}?E-mail=${email}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        "Nom": name,
+                        "Prénom": firstName,
+                        "Téléphone": phone,
+                        "Commentaire": comment
+                    })
+                });
+                alert("Informations mises à jour avec succès !");
+                fetchUserData(); // Recharge les données
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour :", error);
+            }
+        }
+
+        function populateTable(dates) {
+            const table = document.getElementById('participationTable');
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = "";
+
+            if (dates) {
+                dates.split(',').forEach(date => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td class="actions">
+                            <button onclick="removeDate('${date}')">Supprimer</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            table.style.display = 'table';
+        }
+
+        function populateHistory(history) {
+            const table = document.getElementById('historyTable');
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = "";
+
+            if (history) {
+                history.split(';').forEach(entry => {
+                    const [action, date] = entry.split(',');
+                    const row = document.createElement('tr');
+                    row.className = action === 'added' ? 'history-row added' : 'history-row removed';
+                    row.innerHTML = `
+                        <td>${action === 'added' ? 'Ajoutée' : 'Supprimée'}</td>
+                        <td>${date}</td>
+                              `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            table.style.display = 'table';
+        }
+
+        async function removeDate(date) {
+            const email = document.getElementById('emailInput').value;
+            try {
+                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const userData = await response.json();
+                const currentDates = userData[0]["Disponibilités"]
+                    .split(',')
+                    .filter(d => d !== date)
+                    .join(', ');
+
+                await fetch(`${apiUrl}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "E-mail": email, "Disponibilités": currentDates })
+                });
+
+                // Mise à jour de l'historique
+                const history = userData[0]["Historique"] || "";
+                const updatedHistory = `${history};removed,${date}`;
+
+                await fetch(`${apiUrl}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "E-mail": email, "Historique": updatedHistory })
+                });
+
+                alert("Date supprimée avec succès !");
+                fetchUserData();
+            } catch (error) {
+                console.error("Erreur lors de la suppression :", error);
+            }
+        }
+
+        async function addParticipation() {
+            const email = document.getElementById("emailInput").value;
+            const date = document.getElementById("newDate").value;
+
+            if (!date) return alert("Veuillez sélectionner une date.");
+
+            try {
+                const response = await fetch(`${apiUrl}?E-mail=${email}`);
+                const userData = await response.json();
+                const currentDates = userData[0]["Disponibilités"] || "";
+                const updatedDates = currentDates ? `${currentDates}, ${date}` : date;
+
+                await fetch(`${apiUrl}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
+                });
+
+                // Mise à jour de l'historique
+                const history = userData[0]["Historique"] || "";
+                const updatedHistory = `${history};added,${date}`;
+
+                await fetch(`${apiUrl}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "E-mail": email, "Historique": updatedHistory })
+                });
+
+                alert("Date ajoutée avec succès !");
+                fetchUserData();
+            } catch (error) {
+                console.error("Erreur lors de l'ajout :", error);
+            }
+        }
+
+        async function deleteAccount() {
+            const email = document.getElementById('emailInput').value;
+            if (!confirm("Êtes-vous sûr de vouloir supprimer votre compte ?")) return;
+
+            try {
+                await fetch(`${apiUrl}?E-mail=${email}`, {
+                    method: "DELETE",
+                });
+
+                alert("Compte supprimé avec succès !");
+                document.getElementById('participationTable').style.display = 'none';
+                document.getElementById('historyTable').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('addDate').style.display = 'none';
+                document.getElementById('deleteAccount').style.display = 'none';
+                document.getElementById('emailInput').value = "";
+            } catch (error) {
+                console.error("Erreur lors de la suppression du compte :", error);
+            }
+        }
+    </script>
+</body>
+</html>
+          
