@@ -8,9 +8,9 @@
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(120deg, #f26419, #0078D7);
-            color: white;
             margin: 0;
             padding: 0;
+            color: white;
         }
         .container {
             max-width: 800px;
@@ -18,30 +18,26 @@
             padding: 25px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             color: #333;
         }
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         header img {
             height: 60px;
-            margin-bottom: 15px;
         }
         h1 {
             text-align: center;
-            font-size: 28px;
             color: #001f3f;
         }
-        input, select, button, textarea {
+        input, select, button {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 16px;
-            color: #333;
         }
         button {
             background-color: #FFA630;
@@ -54,11 +50,11 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
         }
         table th, table td {
-            padding: 8px;
             border: 1px solid #ddd;
+            padding: 8px;
             text-align: center;
         }
         table th {
@@ -73,19 +69,18 @@
             <h1>Mon Espace IMPRO</h1>
         </header>
 
+        <!-- Section de validation de l'utilisateur -->
         <div id="emailSection">
             <input type="email" id="emailInput" placeholder="Entrez votre email" required>
             <input type="text" id="nameInput" placeholder="Entrez votre nom" required>
             <button onclick="fetchUserData()">Valider</button>
         </div>
 
+        <!-- Section d'informations de l'utilisateur -->
         <div id="userInfoSection" style="display: none;">
             <h2>Vos informations :</h2>
-            <label for="userName">Nom :</label>
             <input type="text" id="userName" disabled>
-            <label for="userFirstName">Prénom :</label>
             <input type="text" id="userFirstName" disabled>
-            <label for="userEmail">Email :</label>
             <input type="email" id="userEmail" disabled>
 
             <h2>Vos participations :</h2>
@@ -108,13 +103,9 @@
     </div>
 
     <script>
-        // Remplacez ci-dessous par l'URL de votre Web App Google Apps Script
-        // Cette Web App doit fournir les endpoints / actions suivantes :
-        // - action=getUser&email=...&name=... : renvoie l'utilisateur en JSON
-        // - action=getAllUsers : renvoie tous les utilisateurs pour calcul des places
-        // - action=updateDates (POST) : met à jour les disponibilités
-    const apiUrl = "https://script.google.com/macros/s/AKfycbw4KGc5Do3mkex2HDKc_10VbuVAhbWLxa7vsWcIe7ljxS9DkwUh8Lc9FbjZxzUGR7P0BA/exec";
+        const apiUrl = "https://script.google.com/macros/s/AKfycbwwqbtlu9sOOo81TenSlYIo6Rw5PtHwuDm-lp-7LQemyVk-K_LDNemqYDEJGjemuGAL-w/exec";
 
+        // Fonction pour récupérer les données utilisateur
         async function fetchUserData() {
             const email = document.getElementById("emailInput").value.trim();
             const name = document.getElementById("nameInput").value.trim().toUpperCase();
@@ -125,34 +116,31 @@
             }
 
             try {
-                // On interroge notre Web App avec action=getUser
-                const response = await fetch(${apiUrl}?action=getUser&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)});
+                const response = await fetch(`${apiUrl}?action=getUser&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`);
                 const data = await response.json();
 
-                if (!data || !data.NOM) {
-                    alert("Aucune correspondance trouvée. Vérifiez vos informations.");
+                if (data.error) {
+                    alert("Aucune correspondance trouvée.");
                     return;
                 }
 
-                displayUserData(data);
+                // Afficher les données utilisateur
+                document.getElementById("emailSection").style.display = "none";
+                document.getElementById("userInfoSection").style.display = "block";
+
+                document.getElementById("userName").value = data.NOM;
+                document.getElementById("userFirstName").value = data.Prénom;
+                document.getElementById("userEmail").value = data["E-mail"];
+
+                loadParticipationTable(data.Disponibilités);
+                loadAvailableDates();
             } catch (error) {
-                console.error("Erreur lors de la récupération des données :", error);
+                console.error("Erreur :", error);
                 alert("Erreur de communication avec le serveur.");
             }
         }
 
-        function displayUserData(user) {
-            document.getElementById("emailSection").style.display = "none";
-            document.getElementById("userInfoSection").style.display = "block";
-
-            document.getElementById("userName").value = user["NOM"];
-            document.getElementById("userFirstName").value = user["Prénom"];
-            document.getElementById("userEmail").value = user["E-mail"];
-
-            loadParticipationTable(user["Disponibilités"]);
-            loadAvailableDates();
-        }
-
+        // Charger les participations existantes
         function loadParticipationTable(dates) {
             const tableBody = document.getElementById("participationTable");
             tableBody.innerHTML = "";
@@ -160,100 +148,81 @@
             if (dates) {
                 dates.split(",").forEach(date => {
                     const row = document.createElement("tr");
-                    row.innerHTML = 
+                    row.innerHTML = `
                         <td>${date}</td>
                         <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>
-                    ;
+                    `;
                     tableBody.appendChild(row);
                 });
             }
         }
 
+        // Charger les dates disponibles
         async function loadAvailableDates() {
             const calendar = document.getElementById("newDate");
             calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
 
-            // On récupère tous les utilisateurs pour calculer le nombre de participants par date
-            const response = await fetch(${apiUrl}?action=getAllUsers);
+            const response = await fetch(`${apiUrl}?action=getAllUsers`);
             const data = await response.json();
 
             const dateCounts = {};
             data.forEach(entry => {
-                if (entry["Disponibilités"]) {
-                    entry["Disponibilités"].split(",").forEach(date => {
+                if (entry.Disponibilités) {
+                    entry.Disponibilités.split(",").forEach(date => {
                         dateCounts[date.trim()] = (dateCounts[date.trim()] || 0) + 1;
                     });
                 }
             });
 
-            const startDate = new Date("2025-01-14");
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() + (2 - startDate.getDay() + 7) % 7); // Prochain mardi
             const endDate = new Date("2025-12-31");
-            let currentDate = startDate;
 
-            while (currentDate <= endDate) {
-                if (currentDate.getDay() === 2) { // Mardis uniquement
-                    const dateISO = currentDate.toISOString().split("T")[0];
-                    const spotsLeft = 16 - (dateCounts[dateISO] || 0);
+            while (startDate <= endDate) {
+                const dateISO = startDate.toISOString().split("T")[0];
+                const spotsLeft = 16 - (dateCounts[dateISO] || 0);
 
-                    if (spotsLeft > 0) {
-                        const option = document.createElement("option");
-                        option.value = dateISO;
-                        option.textContent = ${currentDate.toLocaleDateString("fr-FR")} (${spotsLeft}/16 places disponibles);
-                        calendar.appendChild(option);
-                    }
+                if (spotsLeft > 0) {
+                    const option = document.createElement("option");
+                    option.value = dateISO;
+                    option.textContent = `${startDate.toLocaleDateString("fr-FR")} (${spotsLeft}/16 places disponibles)`;
+                    calendar.appendChild(option);
                 }
-                currentDate.setDate(currentDate.getDate() + 1);
+                startDate.setDate(startDate.getDate() + 7); // Passer au mardi suivant
             }
         }
 
+        // Ajouter une participation
         async function addParticipation() {
             const email = document.getElementById("userEmail").value;
             const newDate = document.getElementById("newDate").value;
 
             if (!newDate) return alert("Veuillez sélectionner une date.");
 
-            // On envoie une requête POST pour mettre à jour les disponibilités (action=updateDates)
             const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "updateDates", email: email, newDate: newDate, operation: "add" })
             });
-            const result = await response.text();
 
-            if (result.includes("succès")) {
-                alert("Participation ajoutée avec succès !");
-                // On récupère à nouveau l'utilisateur pour mettre à jour l'affichage
-                refetchUser(email);
-            } else {
-                alert("Erreur lors de l'ajout de la participation.");
-            }
+            const result = await response.text();
+            alert(result);
+            fetchUserData();
         }
 
+        // Supprimer une participation
         async function removeParticipation(date) {
             const email = document.getElementById("userEmail").value;
-            
-            // On envoie une requête POST pour supprimer la disponibilité
+
             const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "updateDates", email: email, removeDate: date, operation: "remove" })
             });
+
             const result = await response.text();
-
-            if (result.includes("succès")) {
-                alert("Participation supprimée avec succès !");
-                // On récupère à nouveau l'utilisateur pour mettre à jour l'affichage
-                refetchUser(email);
-            } else {
-                alert("Erreur lors de la suppression de la participation.");
-            }
-        }
-
-        async function refetchUser(email) {
-            const name = document.getElementById("userName").value;
-            const response = await fetch(${apiUrl}?action=getUser&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)});
-            const user = await response.json();
-            displayUserData(user);
+            alert(result);
+            fetchUserData();
         }
     </script>
 </body>
