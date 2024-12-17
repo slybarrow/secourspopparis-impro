@@ -108,9 +108,13 @@
     </div>
 
     <script>
-        const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
+        // Remplacez ci-dessous par l'URL de votre Web App Google Apps Script
+        // Cette Web App doit fournir les endpoints / actions suivantes :
+        // - action=getUser&email=...&name=... : renvoie l'utilisateur en JSON
+        // - action=getAllUsers : renvoie tous les utilisateurs pour calcul des places
+        // - action=updateDates (POST) : met à jour les disponibilités
+        const apiUrl = "https://script.google.com/macros/s/ID_DE_VOTRE_SCRIPT/exec";
 
-        // Récupération des données utilisateur
         async function fetchUserData() {
             const email = document.getElementById("emailInput").value.trim();
             const name = document.getElementById("nameInput").value.trim().toUpperCase();
@@ -121,27 +125,22 @@
             }
 
             try {
-                const response = await fetch(apiUrl);
+                // On interroge notre Web App avec action=getUser
+                const response = await fetch(`${apiUrl}?action=getUser&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`);
                 const data = await response.json();
 
-                const match = data.find(entry =>
-                    entry["E-mail"]?.toLowerCase() === email.toLowerCase() &&
-                    entry["NOM"]?.toUpperCase() === name
-                );
-
-                if (!match) {
+                if (!data || !data.NOM) {
                     alert("Aucune correspondance trouvée. Vérifiez vos informations.");
                     return;
                 }
 
-                displayUserData(match);
+                displayUserData(data);
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
                 alert("Erreur de communication avec le serveur.");
             }
         }
 
-        // Affichage des informations utilisateur
         function displayUserData(user) {
             document.getElementById("emailSection").style.display = "none";
             document.getElementById("userInfoSection").style.display = "block";
@@ -154,7 +153,6 @@
             loadAvailableDates();
         }
 
-        // Chargement des participations existantes
         function loadParticipationTable(dates) {
             const tableBody = document.getElementById("participationTable");
             tableBody.innerHTML = "";
@@ -171,16 +169,12 @@
             }
         }
 
-        // Chargement des dates disponibles
         async function loadAvailableDates() {
             const calendar = document.getElementById("newDate");
             calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
 
-            const startDate = new Date("2025-01-14");
-            const endDate = new Date("2025-12-31");
-            let currentDate = startDate;
-
-            const response = await fetch(apiUrl);
+            // On récupère tous les utilisateurs pour calculer le nombre de participants par date
+            const response = await fetch(`${apiUrl}?action=getAllUsers`);
             const data = await response.json();
 
             const dateCounts = {};
@@ -191,6 +185,10 @@
                     });
                 }
             });
+
+            const startDate = new Date("2025-01-14");
+            const endDate = new Date("2025-12-31");
+            let currentDate = startDate;
 
             while (currentDate <= endDate) {
                 if (currentDate.getDay() === 2) { // Mardis uniquement
@@ -208,52 +206,54 @@
             }
         }
 
-        // Ajout d'une participation
         async function addParticipation() {
             const email = document.getElementById("userEmail").value;
             const newDate = document.getElementById("newDate").value;
 
             if (!newDate) return alert("Veuillez sélectionner une date.");
 
-            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-            const user = await response.json()[0];
-
-            const updatedDates = user["Disponibilités"]
-                ? `${user["Disponibilités"]},${newDate}`
-                : newDate;
-
-            await fetch(apiUrl, {
-                method: "PATCH",
+            // On envoie une requête POST pour mettre à jour les disponibilités (action=updateDates)
+            const response = await fetch(apiUrl, {
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
+                body: JSON.stringify({ action: "updateDates", email: email, newDate: newDate, operation: "add" })
             });
+            const result = await response.text();
 
-            alert("Participation ajoutée avec succès !");
-            loadParticipationTable(updatedDates);
-            loadAvailableDates();
+            if (result.includes("succès")) {
+                alert("Participation ajoutée avec succès !");
+                // On récupère à nouveau l'utilisateur pour mettre à jour l'affichage
+                refetchUser(email);
+            } else {
+                alert("Erreur lors de l'ajout de la participation.");
+            }
         }
 
-        // Suppression d'une participation
         async function removeParticipation(date) {
             const email = document.getElementById("userEmail").value;
-
-            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
-            const user = await response.json()[0];
-
-            const updatedDates = user["Disponibilités"]
-                .split(",")
-                .filter(d => d.trim() !== date)
-                .join(",");
-
-            await fetch(apiUrl, {
-                method: "PATCH",
+            
+            // On envoie une requête POST pour supprimer la disponibilité
+            const response = await fetch(apiUrl, {
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
+                body: JSON.stringify({ action: "updateDates", email: email, removeDate: date, operation: "remove" })
             });
+            const result = await response.text();
 
-            alert("Participation supprimée avec succès !");
-            loadParticipationTable(updatedDates);
-            loadAvailableDates();
+            if (result.includes("succès")) {
+                alert("Participation supprimée avec succès !");
+                // On récupère à nouveau l'utilisateur pour mettre à jour l'affichage
+                refetchUser(email);
+            } else {
+                alert("Erreur lors de la suppression de la participation.");
+            }
+        }
+
+        async function refetchUser(email) {
+            const name = document.getElementById("userName").value;
+            const response = await fetch(`${apiUrl}?action=getUser&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`);
+            const user = await response.json();
+            displayUserData(user);
         }
     </script>
 </body>
