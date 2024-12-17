@@ -1,49 +1,253 @@
-<script>
-    const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace IMPRO</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(120deg, #f26419, #0078D7);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #001f3f;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            color: #333;
+        }
+        button {
+            background-color: #FFA630;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e59426;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table th, table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
+            <h1>Mon Espace IMPRO</h1>
+        </header>
 
-    async function fetchUserData() {
-        const email = document.getElementById("emailInput").value.trim();
-        const name = document.getElementById("nameInput").value.trim().toUpperCase();
+        <div id="emailSection">
+            <input type="email" id="emailInput" placeholder="Entrez votre email" required>
+            <input type="text" id="nameInput" placeholder="Entrez votre nom de famille" required>
+            <button onclick="fetchUserData()">Accéder à mon profil</button>
+        </div>
 
-        if (!email || !name) {
-            alert("Veuillez entrer votre email et votre nom.");
-            return;
+        <div id="userInfoSection" style="display: none;">
+            <h2>Vos informations :</h2>
+            <label for="userName">Nom :</label>
+            <input type="text" id="userName" disabled>
+            <label for="userFirstName">Prénom :</label>
+            <input type="text" id="userFirstName" disabled>
+            <label for="userEmail">Email :</label>
+            <input type="email" id="userEmail" disabled>
+
+            <h2>Vos participations :</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="participationTable"></tbody>
+            </table>
+
+            <h2>Ajouter une participation :</h2>
+            <select id="newDate">
+                <option value="">-- Sélectionnez une date --</option>
+            </select>
+            <button onclick="addParticipation()">Ajouter</button>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = "https://sheetdb.io/api/v1/garbqmebupvlo"; // Remplacez par votre ID SheetDB
+        const vacationDates = [
+            { start: new Date("2025-02-22"), end: new Date("2025-03-10") }, // Hiver
+            { start: new Date("2025-04-19"), end: new Date("2025-05-05") }, // Printemps
+            { start: new Date("2025-07-05"), end: new Date("2025-09-01") }, // Été
+            { start: new Date("2025-10-18"), end: new Date("2025-11-03") }, // Toussaint
+            { start: new Date("2025-12-20"), end: new Date("2026-01-05") }  // Noël
+        ];
+
+        // Récupérer les informations utilisateur filtrées
+        async function fetchUserData() {
+            const email = document.getElementById("emailInput").value.trim();
+            const name = document.getElementById("nameInput").value.trim().toUpperCase();
+
+            if (!email || !name) {
+                alert("Veuillez entrer votre email et votre nom de famille.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    alert("Aucune correspondance trouvée. Vérifiez vos informations.");
+                    return;
+                }
+                displayUserData(data[0]);
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données :", error);
+                alert("Erreur de communication avec le serveur.");
+            }
         }
 
-        try {
-            // Appel à l'API avec le filtre NOM + E-mail
-            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}&NOM=${encodeURIComponent(name)}`);
+        // Affichage des données utilisateur
+        function displayUserData(user) {
+            document.getElementById("emailSection").style.display = "none";
+            document.getElementById("userInfoSection").style.display = "block";
+
+            document.getElementById("userName").value = user["NOM"];
+            document.getElementById("userFirstName").value = user["Prénom"];
+            document.getElementById("userEmail").value = user["E-mail"];
+            loadParticipationTable(user["Disponibilités"]);
+            loadAvailableDates();
+        }
+
+        // Chargement des dates déjà inscrites
+        function loadParticipationTable(dates) {
+            const tableBody = document.getElementById("participationTable");
+            tableBody.innerHTML = "";
+
+            if (dates) {
+                dates.split(",").forEach(date => {
+                    const row = `<tr>
+                        <td>${date}</td>
+                        <td><button onclick="removeParticipation('${date}')">Supprimer</button></td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            }
+        }
+
+        // Charger les dates disponibles
+        async function loadAvailableDates() {
+            const select = document.getElementById("newDate");
+            select.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
+            const startDate = new Date("2025-01-14");
+            const endDate = new Date("2025-12-31");
+            let currentDate = startDate;
+
+            const response = await fetch(apiUrl);
             const data = await response.json();
+            const dateCounts = {};
+            data.forEach(entry => {
+                if (entry["Disponibilités"]) {
+                    entry["Disponibilités"].split(",").forEach(date => {
+                        dateCounts[date.trim()] = (dateCounts[date.trim()] || 0) + 1;
+                    });
+                }
+            });
 
-            // Vérification des résultats
-            if (!data || data.length === 0) {
-                alert("Aucune correspondance trouvée. Vérifiez vos informations.");
-                return;
+            while (currentDate <= endDate) {
+                if (currentDate.getDay() === 2) { // Mardis uniquement
+                    const isVacation = vacationDates.some(v => currentDate >= v.start && currentDate <= v.end);
+                    if (!isVacation) {
+                        const dateISO = currentDate.toISOString().split("T")[0];
+                        const spotsLeft = 16 - (dateCounts[dateISO] || 0);
+                        const option = document.createElement("option");
+                        option.value = dateISO;
+                        option.textContent = spotsLeft > 0 
+                            ? `${currentDate.getDate()} ${currentDate.toLocaleString("fr-FR", { month: "short" })} (${spotsLeft} places)`
+                            : `${currentDate.getDate()} ${currentDate.toLocaleString("fr-FR", { month: "short" })} (Complet)`;
+                        if (spotsLeft <= 0) option.disabled = true;
+                        select.appendChild(option);
+                    }
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
             }
-            if (data.length > 1) {
-                alert("Plusieurs correspondances trouvées. Veuillez contacter l'administrateur.");
-                console.error("Doublons détectés :", data);
-                return;
-            }
-
-            // Afficher les données utilisateur
-            displayUserData(data[0]);
-        } catch (error) {
-            console.error("Erreur lors de la récupération des données :", error);
-            alert("Erreur de communication avec le serveur. Veuillez réessayer.");
         }
-    }
 
-    function displayUserData(user) {
-        document.getElementById("emailSection").style.display = "none";
-        document.getElementById("userInfoSection").style.display = "block";
+        // Ajouter une participation
+        async function addParticipation() {
+            const email = document.getElementById("userEmail").value;
+            const newDate = document.getElementById("newDate").value;
 
-        document.getElementById("userName").value = user["NOM"];
-        document.getElementById("userFirstName").value = user["Prénom"];
-        document.getElementById("userEmail").value = user["E-mail"];
+            if (!newDate) {
+                alert("Veuillez sélectionner une date.");
+                return;
+            }
 
-        // Charger les participations et les dates disponibles
-        loadParticipationTable(user["Disponibilités"]);
-        loadAvailableDates(user["Disponibilités"]);
-    }
-</script>
+            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
+            const user = await response.json()[0];
+            const updatedDates = user["Disponibilités"] ? `${user["Disponibilités"]},${newDate}` : newDate;
+
+            await fetch(apiUrl, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
+            });
+            alert("Participation ajoutée avec succès !");
+            loadParticipationTable(updatedDates);
+            loadAvailableDates();
+        }
+
+        // Supprimer une participation
+        async function removeParticipation(date) {
+            const email = document.getElementById("userEmail").value;
+            const response = await fetch(`${apiUrl}?E-mail=${encodeURIComponent(email)}`);
+            const user = await response.json()[0];
+            const updatedDates = user["Disponibilités"].split(",").filter(d => d !== date).join(",");
+
+            await fetch(apiUrl, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "E-mail": email, "Disponibilités": updatedDates })
+            });
+            alert("Participation supprimée avec succès !");
+            loadParticipationTable(updatedDates);
+            loadAvailableDates();
+        }
+    </script>
+</body>
+</html>
