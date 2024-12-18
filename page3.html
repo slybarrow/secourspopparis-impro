@@ -8,7 +8,7 @@
         body { font-family: 'Arial', sans-serif; background: linear-gradient(120deg, #f26419, #0078D7); margin: 0; padding: 0; color: white; }
         .container { max-width: 800px; margin: 50px auto; padding: 25px; background: rgba(255, 255, 255, 0.95); border-radius: 10px; color: #333; }
         h1 { text-align: center; color: #001f3f; }
-        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 16px; }
         button { background-color: #FFA630; color: white; cursor: pointer; }
         button:hover { background-color: #e59426; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -22,24 +22,18 @@
             <img src="Logo_CMJN@2x.png" alt="Secours Populaire Français">
             <h1>Mon Espace IMPRO</h1>
         </header>
-
         <div id="emailSection">
             <input type="email" id="emailInput" placeholder="Entrez votre email" required>
             <input type="text" id="nameInput" placeholder="Entrez votre nom" required>
             <button onclick="fetchUserData()">Valider</button>
         </div>
-
         <div id="userInfoSection" style="display: none;">
             <h2>Vos informations :</h2>
             <input type="text" id="userName" disabled>
             <input type="text" id="userFirstName" disabled>
             <input type="email" id="userEmail" disabled>
-
             <h2>Vos participations :</h2>
-            <table>
-                <tbody id="participationTable"></tbody>
-            </table>
-
+            <table><tbody id="participationTable"></tbody></table>
             <h2>Ajouter une participation :</h2>
             <select id="newDate"></select>
             <button onclick="addParticipation()">Ajouter</button>
@@ -47,8 +41,7 @@
     </div>
 
     <script>
-        console.log("Le script JavaScript est bien chargé !");
-        const apiUrl = "https://script.google.com/macros/s/AKfycbxkQK17Aub7aGtnM75LnC3OuEM2AsMFLV5Dvq1UECbhVDRc9YNl_PY5o79GeyOB_SmNJw/exec";
+        const apiUrl = "https://script.google.com/macros/s/AKfycbz_KYezRS6usa8eQ3InS_skq4aK8-Ga-f8xWx5i50yplVDJoZqOgP1eurmowSGEjA7V/exec";
         const vacancesScolaires = ["2025-02-18", "2025-02-25", "2025-04-15", "2025-12-23"];
 
         function formatDate(dateISO) {
@@ -66,11 +59,9 @@
             if (data.error) return alert("Utilisateur non trouvé.");
             document.getElementById("emailSection").style.display = "none";
             document.getElementById("userInfoSection").style.display = "block";
-
             document.getElementById("userName").value = data.NOM;
             document.getElementById("userFirstName").value = data.Prénom;
             document.getElementById("userEmail").value = data["E-mail"];
-
             loadParticipationTable(data.Disponibilités);
             loadAvailableDates();
         }
@@ -91,9 +82,7 @@
             calendar.innerHTML = '<option value="">-- Sélectionnez une date --</option>';
 
             const today = new Date();
-            const end = new Date("2025-12-31");
-
-            for (let d = new Date(today); d <= end; d.setDate(d.getDate() + 7)) {
+            for (let d = new Date(today); d <= new Date("2025-12-31"); d.setDate(d.getDate() + 7)) {
                 const dateISO = d.toISOString().split("T")[0];
                 if (d.getDay() === 2 && !vacancesScolaires.includes(dateISO)) {
                     calendar.innerHTML += `<option value="${dateISO}">${formatDate(dateISO)}</option>`;
@@ -101,8 +90,8 @@
             }
         }
 
-        async function addParticipation() { /* Requête POST pour ajout */ }
-        async function removeParticipation(date) { /* Requête POST pour suppression */ }
+        async function addParticipation() { /* Fonction pour ajouter une date */ }
+        async function removeParticipation(date) { /* Fonction pour supprimer une date */ }
     </script>
 </body>
 </html>
